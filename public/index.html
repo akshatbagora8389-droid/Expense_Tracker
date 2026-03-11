@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Track your income and expenses with beautiful charts and insights.">
+    <title>ExpenseIQ — Smart Expense Tracker</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <div class="landing-wrapper">
+        <!-- Navbar -->
+        <nav class="navbar">
+            <div class="logo">
+                <div class="logo-icon">💰</div>
+                ExpenseIQ
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-content">
+                <h1>Take Control of Your <span>Finances</span></h1>
+                <p>Track every dollar, visualize your spending habits, and grow your savings — all in one beautiful dashboard.</p>
+                <div class="hero-features">
+                    <div class="feature">
+                        <div class="icon">📊</div>
+                        <span>Interactive pie &amp; line charts</span>
+                    </div>
+                    <div class="feature">
+                        <div class="icon">💳</div>
+                        <span>Track income &amp; expenses separately</span>
+                    </div>
+                    <div class="feature">
+                        <div class="icon">🔒</div>
+                        <span>Secure login with encrypted passwords</span>
+                    </div>
+                    <div class="feature">
+                        <div class="icon">📱</div>
+                        <span>Responsive design — works on any device</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Auth Card -->
+            <div class="auth-card">
+                <div class="auth-tabs">
+                    <button class="auth-tab active" id="login-tab" onclick="switchTab('login')">Sign In</button>
+                    <button class="auth-tab" id="register-tab" onclick="switchTab('register')">Sign Up</button>
+                </div>
+
+                <!-- Login Form -->
+                <form id="login-form" onsubmit="handleLogin(event)">
+                    <h2>Welcome Back</h2>
+                    <p class="subtitle">Sign in to access your dashboard</p>
+
+                    <div class="form-group">
+                        <label for="login-email">Email Address</label>
+                        <input type="email" id="login-email" placeholder="you@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" placeholder="••••••••" required>
+                    </div>
+                    <div class="form-error" id="login-error"></div>
+                    <button type="submit" class="btn btn-primary" id="login-btn">
+                        Sign In
+                    </button>
+                </form>
+
+                <!-- Register Form -->
+                <form id="register-form" class="hidden" onsubmit="handleRegister(event)">
+                    <h2>Create Account</h2>
+                    <p class="subtitle">Start tracking your finances today</p>
+
+                    <div class="form-group">
+                        <label for="reg-username">Username</label>
+                        <input type="text" id="reg-username" placeholder="johndoe" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-email">Email Address</label>
+                        <input type="email" id="reg-email" placeholder="you@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-password">Password</label>
+                        <input type="password" id="reg-password" placeholder="Min 6 characters" minlength="6" required>
+                    </div>
+                    <div class="form-error" id="register-error"></div>
+                    <button type="submit" class="btn btn-primary" id="register-btn">
+                        Create Account
+                    </button>
+                </form>
+            </div>
+        </section>
+    </div>
+
+    <script src="/js/auth.js"></script>
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Income — ExpenseIQ</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">💰</div>
+                ExpenseIQ
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard" class="nav-link">
+                    <span class="nav-icon">📊</span> Dashboard
+                </a>
+                <a href="/income-page" class="nav-link active">
+                    <span class="nav-icon">💵</span> Income
+                </a>
+                <a href="/expenses-page" class="nav-link">
+                    <span class="nav-icon">💳</span> Expenses
+                </a>
+                <a href="/advisor-page" class="nav-link">
+                    <span class="nav-icon">🤖</span> AI Advisor
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar" id="user-avatar">U</div>
+                    <span class="user-name" id="user-name">User</span>
+                </div>
+                <button class="btn-logout" onclick="handleLogout()">
+                    🚪 Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1>💵 Income</h1>
+                <p>Track and manage all your income sources</p>
+            </div>
+
+            <!-- Add Income Form -->
+            <div class="add-form-card">
+                <h3>Add New Income</h3>
+                <form id="add-income-form" onsubmit="handleAddIncome(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="income-source">Source</label>
+                            <input type="text" id="income-source" placeholder="e.g. Salary, Freelance" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="income-amount">Amount (₹)</label>
+                            <input type="number" id="income-amount" placeholder="0.00" step="0.01" min="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="income-date">Date</label>
+                            <input type="date" id="income-date" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="income-desc">Description (optional)</label>
+                        <input type="text" id="income-desc" placeholder="Brief note about this income">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-success" id="add-income-btn">
+                            ➕ Add Income
+                        </button>
+                    </div>
+                    <div class="form-error" id="income-form-error"></div>
+                </form>
+            </div>
+
+            <!-- Income Table -->
+            <div class="data-card">
+                <h3>Income History</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Source</th>
+                            <th>Amount</th>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="income-tbody">
+                        <tr>
+                            <td colspan="5">
+                                <div class="empty-state">
+                                    <div class="empty-icon">💵</div>
+                                    <h3>No income yet</h3>
+                                    <p>Add your first income entry above</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script src="/js/income.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — ExpenseIQ</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+</head>
+
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">💰</div>
+                ExpenseIQ
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard" class="nav-link active">
+                    <span class="nav-icon">📊</span> Dashboard
+                </a>
+                <a href="/income-page" class="nav-link">
+                    <span class="nav-icon">💵</span> Income
+                </a>
+                <a href="/expenses-page" class="nav-link">
+                    <span class="nav-icon">💳</span> Expenses
+                </a>
+                <a href="/advisor-page" class="nav-link">
+                    <span class="nav-icon">🤖</span> AI Advisor
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar" id="user-avatar">U</div>
+                    <span class="user-name" id="user-name">User</span>
+                </div>
+                <button class="btn-logout" id="logout-btn" onclick="handleLogout()">
+                    🚪 Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1>Dashboard</h1>
+                <p>Your financial overview at a glance</p>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card income">
+                    <div class="stat-icon">💵</div>
+                    <div class="stat-label">Total Income</div>
+                    <div class="stat-value" id="total-income">₹0</div>
+                </div>
+                <div class="stat-card expense">
+                    <div class="stat-icon">💳</div>
+                    <div class="stat-label">Total Expenses</div>
+                    <div class="stat-value" id="total-expenses">₹0</div>
+                </div>
+                <div class="stat-card balance">
+                    <div class="stat-icon">💎</div>
+                    <div class="stat-label">Balance</div>
+                    <div class="stat-value" id="balance">₹0</div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3><span class="chart-dot green"></span> Income by Source</h3>
+                    <div class="chart-container">
+                        <canvas id="income-pie-chart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3><span class="chart-dot red"></span> Expenses Over Time</h3>
+                    <div class="chart-container">
+                        <canvas id="expenses-line-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Transactions -->
+            <div class="recent-card">
+                <h3>Recent Transactions</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Label</th>
+                            <th>Amount</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recent-tbody">
+                        <tr>
+                            <td colspan="4" class="empty-state" style="padding:40px">
+                                <div class="empty-icon">📭</div>
+                                <h3>No transactions yet</h3>
+                                <p>Add income or expenses to see them here</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script src="/js/dashboard.js"></script>
+</body>
+
+</html>

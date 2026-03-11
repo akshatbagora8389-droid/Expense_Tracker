@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Advisor — ExpenseIQ</title>
+    <meta name="description"
+        content="Get personalized financial advice powered by AI based on your income and spending data.">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">💰</div>
+                ExpenseIQ
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard" class="nav-link">
+                    <span class="nav-icon">📊</span> Dashboard
+                </a>
+                <a href="/income-page" class="nav-link">
+                    <span class="nav-icon">💵</span> Income
+                </a>
+                <a href="/expenses-page" class="nav-link">
+                    <span class="nav-icon">💳</span> Expenses
+                </a>
+                <a href="/advisor-page" class="nav-link active">
+                    <span class="nav-icon">🤖</span> AI Advisor
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar" id="user-avatar">U</div>
+                    <span class="user-name" id="user-name">User</span>
+                </div>
+                <button class="btn-logout" onclick="handleLogout()">
+                    🚪 Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1>🤖 AI Financial Advisor</h1>
+                <p>Ask me anything about your finances, purchases, or savings goals</p>
+            </div>
+
+            <!-- Chat Area -->
+            <div class="chat-card">
+                <div class="chat-messages" id="chat-messages">
+                    <!-- Welcome message -->
+                    <div class="chat-message bot">
+                        <div class="chat-avatar bot-avatar">🤖</div>
+                        <div class="chat-bubble bot-bubble">
+                            <p>Hey there! 👋 I'm your <strong>AI Financial Advisor</strong>.</p>
+                            <p>I have access to your income, expenses, and balance data. Ask me anything like:</p>
+                            <ul>
+                                <li>"Should I buy a new phone for ₹25,000?"</li>
+                                <li>"How can I save more money?"</li>
+                                <li>"What's my biggest spending category?"</li>
+                                <li>"Give me a monthly budget plan"</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Suggestions -->
+                <div class="chat-suggestions" id="chat-suggestions">
+                    <button class="suggestion-chip" onclick="sendSuggestion(this)">📊 Analyze my spending</button>
+                    <button class="suggestion-chip" onclick="sendSuggestion(this)">💡 Savings tips for me</button>
+                    <button class="suggestion-chip" onclick="sendSuggestion(this)">📋 Create a budget plan</button>
+                    <button class="suggestion-chip" onclick="sendSuggestion(this)">🛒 Can I afford a big
+                        purchase?</button>
+                </div>
+
+                <!-- Input Bar -->
+                <div class="chat-input-bar">
+                    <input type="text" id="chat-input" placeholder="Ask about your finances..." autocomplete="off"
+                        onkeydown="if(event.key==='Enter') sendMessage()">
+                    <button class="chat-send-btn" id="chat-send-btn" onclick="sendMessage()">
+                        <span>➤</span>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script src="/js/advisor.js"></script>
+</body>
+
+</html>
