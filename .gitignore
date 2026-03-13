@@ -7,11 +7,19 @@ __pycache__/
 *.pyo
 venv/
 .venv/
+*.egg-info/
+dist/
+build/
 
 # IDE
 .vscode/
 .idea/
+*.swp
+*.swo
 
 # OS files
 .DS_Store
 Thumbs.db
+
+# Logs
+*.log

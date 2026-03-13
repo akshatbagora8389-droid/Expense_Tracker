@@ -1,4 +1,5 @@
 import os
+import logging
 import functools
 from datetime import datetime, date
 from decimal import Decimal
@@ -6,21 +7,48 @@ from decimal import Decimal
 from flask import (
     Flask, request, jsonify, session, redirect, url_for, send_from_directory
 )
+from flask_cors import CORS
 from dotenv import load_dotenv
 import mysql.connector
 import bcrypt
-import google.generativeai as genai
+from openai import OpenAI
 
 load_dotenv()
 
+# ──────────────────────────────────────────────
+# App Configuration
+# ──────────────────────────────────────────────
+
 app = Flask(__name__, static_folder='public', static_url_path='')
-app.secret_key = os.getenv('FLASK_SECRET_KEY', 'change-me')
+
+# Secret key — MUST be set via env in production
+secret_key = os.getenv('FLASK_SECRET_KEY')
+if not secret_key or secret_key == 'change-me':
+    import secrets
+    secret_key = secrets.token_hex(32)
+    app.logger.warning(
+        'FLASK_SECRET_KEY not set — using a random key. '
+        'Sessions will NOT persist across restarts. '
+        'Set FLASK_SECRET_KEY in your .env or environment variables.'
+    )
+app.secret_key = secret_key
+
+# CORS — allow all origins in dev, restrict in production if needed
+CORS(app, supports_credentials=True)
+
+# Logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+)
 
 # ──────────────────────────────────────────────
-# Gemini AI configuration
+# Grok AI configuration (xAI)
 # ──────────────────────────────────────────────
-genai.configure(api_key=os.getenv('GEMINI_API_KEY', ''))
-gemini_model = genai.GenerativeModel('gemini-2.5-flash')
+grok_client = OpenAI(
+    api_key=os.getenv('GROK_API_KEY', ''),
+    base_url='https://api.x.ai/v1',
+)
 
 # ──────────────────────────────────────────────
 # Database helpers
@@ -433,7 +461,7 @@ def ai_chat():
     cur.close()
     conn.close()
 
-    # Build context for Gemini
+    # Build context for Grok
     financial_context = (
         f"User's Financial Summary:\n"
         f"- Total Income: ₹{total_income:,.2f}\n"
@@ -458,16 +486,20 @@ def ai_chat():
     )
 
     try:
-        chat = gemini_model.generate_content(
-            [{'role': 'user', 'parts': [system_prompt + '\n\nUser question: ' + user_message]}]
+        response = grok_client.chat.completions.create(
+            model='grok-3-mini-fast',
+            messages=[
+                {'role': 'system', 'content': system_prompt},
+                {'role': 'user', 'content': user_message},
+            ],
         )
-        reply = chat.text
+        reply = response.choices[0].message.content
     except Exception as e:
-        app.logger.error(f"Gemini API error: {type(e).__name__}: {e}")
+        app.logger.error(f"Grok API error: {type(e).__name__}: {e}")
         error_str = str(e).lower()
-        if '429' in error_str or 'quota' in error_str or 'exhausted' in error_str:
-            reply = ("⚠️ The AI advisor's free API quota has been exceeded. "
-                     "Please try again later or update the API key in the .env file with a key that has available quota.")
+        if '429' in error_str or 'quota' in error_str or 'rate' in error_str:
+            reply = ("⚠️ The AI advisor's API rate limit has been reached. "
+                     "Please try again later or update the API key in the .env file.")
         else:
             reply = "I'm sorry, I couldn't process your request right now. Please try again later."
 
@@ -479,4 +511,6 @@ def ai_chat():
 
 if __name__ == '__main__':
     init_db()
-    app.run(debug=True, port=5000)
+    debug = os.getenv('FLASK_DEBUG', 'false').lower() in ('true', '1', 'yes')
+    app.run(debug=debug, host='0.0.0.0', port=int(os.getenv('PORT', 5000)))
+
