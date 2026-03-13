@@ -3,97 +3,317 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Track your income and expenses with beautiful charts and insights.">
+    <meta name="description" content="ExpenseIQ — Track income, manage expenses, and get AI-powered financial advice. Your smart personal finance dashboard.">
     <title>ExpenseIQ — Smart Expense Tracker</title>
     <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/landing.css">
 </head>
 <body>
-    <div class="landing-wrapper">
-        <!-- Navbar -->
-        <nav class="navbar">
+    <!-- ── Navbar ─────────────────────────────── -->
+    <nav class="landing-nav" id="landing-nav">
+        <div class="landing-nav-inner">
             <div class="logo">
                 <div class="logo-icon">💰</div>
                 ExpenseIQ
             </div>
-        </nav>
+            <div class="nav-links" id="nav-links">
+                <a href="#features">Features</a>
+                <a href="#how-it-works">How It Works</a>
+                <a href="#ai-advisor">AI Advisor</a>
+                <button class="btn-nav-login" onclick="openAuthModal('login')">Log In</button>
+                <button class="btn-nav-signup" onclick="openAuthModal('register')">Sign Up Free</button>
+            </div>
+            <button class="mobile-menu-btn" id="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
 
-        <!-- Hero Section -->
-        <section class="hero">
-            <div class="hero-content">
-                <h1>Take Control of Your <span>Finances</span></h1>
-                <p>Track every dollar, visualize your spending habits, and grow your savings — all in one beautiful dashboard.</p>
-                <div class="hero-features">
-                    <div class="feature">
-                        <div class="icon">📊</div>
-                        <span>Interactive pie &amp; line charts</span>
-                    </div>
-                    <div class="feature">
-                        <div class="icon">💳</div>
-                        <span>Track income &amp; expenses separately</span>
-                    </div>
-                    <div class="feature">
-                        <div class="icon">🔒</div>
-                        <span>Secure login with encrypted passwords</span>
-                    </div>
-                    <div class="feature">
-                        <div class="icon">📱</div>
-                        <span>Responsive design — works on any device</span>
+    <!-- ── Hero Section ──────────────────────── -->
+    <section class="landing-hero">
+        <div class="hero-bg-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+        </div>
+        <div class="landing-hero-inner">
+            <div class="hero-badge">✨ Smart Finance Management</div>
+            <h1>Take Control of Your <span class="gradient-text">Finances</span> with AI</h1>
+            <p class="hero-subtitle">Track every rupee, visualize spending habits, and get personalized financial advice — all in one beautiful dashboard.</p>
+            <div class="hero-cta-group">
+                <button class="btn-cta-primary" onclick="openAuthModal('register')">
+                    Get Started — It's Free
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </button>
+                <a href="#features" class="btn-cta-secondary">Learn More</a>
+            </div>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <span class="hero-stat-value">📊</span>
+                    <span class="hero-stat-label">Interactive Charts</span>
+                </div>
+                <div class="hero-stat-divider"></div>
+                <div class="hero-stat">
+                    <span class="hero-stat-value">🤖</span>
+                    <span class="hero-stat-label">AI Advisor</span>
+                </div>
+                <div class="hero-stat-divider"></div>
+                <div class="hero-stat">
+                    <span class="hero-stat-value">🔒</span>
+                    <span class="hero-stat-label">Secure & Private</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Features Section ──────────────────── -->
+    <section class="landing-section" id="features">
+        <div class="section-inner">
+            <div class="section-header">
+                <span class="section-tag">Features</span>
+                <h2>Everything You Need to Manage <span class="gradient-text">Your Money</span></h2>
+                <p>A comprehensive toolkit to track, analyze, and optimize your personal finances.</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: rgba(99, 102, 241, 0.1); color: #6366f1;">📊</div>
+                    <h3>Visual Dashboard</h3>
+                    <p>Beautiful pie charts and line graphs that make understanding your spending patterns effortless.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">💰</div>
+                    <h3>Income Tracking</h3>
+                    <p>Log all your income sources in one place. See exactly where your money comes from.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">💸</div>
+                    <h3>Expense Management</h3>
+                    <p>Categorize and track every expense. Know exactly where each rupee goes.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">🤖</div>
+                    <h3>AI Financial Advisor</h3>
+                    <p>Get personalized financial advice powered by AI, based on your actual spending data.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">🔐</div>
+                    <h3>Secure Authentication</h3>
+                    <p>Your data is protected with industry-standard bcrypt encryption. Your finances, your privacy.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: rgba(168, 85, 247, 0.1); color: #a855f7;">📱</div>
+                    <h3>Fully Responsive</h3>
+                    <p>Access your financial dashboard from any device — desktop, tablet, or mobile.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── How It Works ──────────────────────── -->
+    <section class="landing-section section-alt" id="how-it-works">
+        <div class="section-inner">
+            <div class="section-header">
+                <span class="section-tag">How It Works</span>
+                <h2>Get Started in <span class="gradient-text">3 Simple Steps</span></h2>
+                <p>From sign-up to smart insights — it only takes minutes.</p>
+            </div>
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-number">01</div>
+                    <h3>Create Your Account</h3>
+                    <p>Sign up for free in seconds. No credit card required, no hidden fees.</p>
+                </div>
+                <div class="step-connector">
+                    <svg width="40" height="24" viewBox="0 0 40 24" fill="none"><path d="M0 12h36m0 0l-6-6m6 6l-6 6" stroke="rgba(99,102,241,0.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">02</div>
+                    <h3>Add Your Transactions</h3>
+                    <p>Log your income and expenses with categories, amounts, and dates.</p>
+                </div>
+                <div class="step-connector">
+                    <svg width="40" height="24" viewBox="0 0 40 24" fill="none"><path d="M0 12h36m0 0l-6-6m6 6l-6 6" stroke="rgba(99,102,241,0.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">03</div>
+                    <h3>Get Smart Insights</h3>
+                    <p>View dashboards, charts, and ask the AI advisor for personalized tips.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── AI Advisor Section ────────────────── -->
+    <section class="landing-section" id="ai-advisor">
+        <div class="section-inner">
+            <div class="advisor-split">
+                <div class="advisor-content">
+                    <span class="section-tag">AI-Powered</span>
+                    <h2>Your Personal <span class="gradient-text">Financial Advisor</span></h2>
+                    <p>Ask anything about your finances and get instant, personalized advice based on your real spending data.</p>
+                    <ul class="advisor-features-list">
+                        <li>
+                            <span class="check-icon">✓</span>
+                            Analyze your spending patterns
+                        </li>
+                        <li>
+                            <span class="check-icon">✓</span>
+                            Get budgeting recommendations
+                        </li>
+                        <li>
+                            <span class="check-icon">✓</span>
+                            Evaluate purchase decisions
+                        </li>
+                        <li>
+                            <span class="check-icon">✓</span>
+                            Smart savings strategies
+                        </li>
+                    </ul>
+                    <button class="btn-cta-primary" onclick="openAuthModal('register')" style="width: auto;">
+                        Try AI Advisor Free
+                    </button>
+                </div>
+                <div class="advisor-preview">
+                    <div class="chat-preview-card">
+                        <div class="chat-preview-header">
+                            <span>🤖</span> AI Financial Advisor
+                        </div>
+                        <div class="chat-preview-messages">
+                            <div class="preview-msg user-msg">Can I afford a ₹15,000 phone?</div>
+                            <div class="preview-msg bot-msg">Based on your current balance of <strong>₹42,500</strong> and monthly expenses averaging <strong>₹28,000</strong>, you can afford it — but I'd recommend waiting until next month when your salary arrives to keep a comfortable buffer. 💡</div>
+                        </div>
                     </div>
                 </div>
             </div>
+        </div>
+    </section>
 
-            <!-- Auth Card -->
-            <div class="auth-card">
-                <div class="auth-tabs">
-                    <button class="auth-tab active" id="login-tab" onclick="switchTab('login')">Sign In</button>
-                    <button class="auth-tab" id="register-tab" onclick="switchTab('register')">Sign Up</button>
-                </div>
-
-                <!-- Login Form -->
-                <form id="login-form" onsubmit="handleLogin(event)">
-                    <h2>Welcome Back</h2>
-                    <p class="subtitle">Sign in to access your dashboard</p>
-
-                    <div class="form-group">
-                        <label for="login-email">Email Address</label>
-                        <input type="email" id="login-email" placeholder="you@example.com" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="login-password">Password</label>
-                        <input type="password" id="login-password" placeholder="••••••••" required>
-                    </div>
-                    <div class="form-error" id="login-error"></div>
-                    <button type="submit" class="btn btn-primary" id="login-btn">
-                        Sign In
-                    </button>
-                </form>
-
-                <!-- Register Form -->
-                <form id="register-form" class="hidden" onsubmit="handleRegister(event)">
-                    <h2>Create Account</h2>
-                    <p class="subtitle">Start tracking your finances today</p>
-
-                    <div class="form-group">
-                        <label for="reg-username">Username</label>
-                        <input type="text" id="reg-username" placeholder="johndoe" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-email">Email Address</label>
-                        <input type="email" id="reg-email" placeholder="you@example.com" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-password">Password</label>
-                        <input type="password" id="reg-password" placeholder="Min 6 characters" minlength="6" required>
-                    </div>
-                    <div class="form-error" id="register-error"></div>
-                    <button type="submit" class="btn btn-primary" id="register-btn">
-                        Create Account
-                    </button>
-                </form>
+    <!-- ── CTA Section ───────────────────────── -->
+    <section class="landing-cta-section">
+        <div class="section-inner">
+            <div class="cta-card">
+                <h2>Ready to Take Control of Your Finances?</h2>
+                <p>Join ExpenseIQ today and start making smarter financial decisions.</p>
+                <button class="btn-cta-primary btn-cta-large" onclick="openAuthModal('register')">
+                    Create Free Account
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </button>
             </div>
-        </section>
+        </div>
+    </section>
+
+    <!-- ── Footer ────────────────────────────── -->
+    <footer class="landing-footer">
+        <div class="section-inner">
+            <div class="footer-inner">
+                <div class="footer-brand">
+                    <div class="logo">
+                        <div class="logo-icon">💰</div>
+                        ExpenseIQ
+                    </div>
+                    <p>Smart expense tracking with AI-powered insights.</p>
+                </div>
+                <div class="footer-copy">
+                    &copy; 2026 ExpenseIQ. All rights reserved.
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ── Auth Modal ────────────────────────── -->
+    <div class="auth-modal-overlay" id="auth-modal-overlay" onclick="closeAuthModal(event)">
+        <div class="auth-card" onclick="event.stopPropagation()">
+            <button class="auth-modal-close" onclick="closeAuthModal()" aria-label="Close">&times;</button>
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="login-tab" onclick="switchTab('login')">Sign In</button>
+                <button class="auth-tab" id="register-tab" onclick="switchTab('register')">Sign Up</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="login-form" onsubmit="handleLogin(event)">
+                <h2>Welcome Back</h2>
+                <p class="subtitle">Sign in to access your dashboard</p>
+                <div class="form-group">
+                    <label for="login-email">Email Address</label>
+                    <input type="email" id="login-email" placeholder="you@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" placeholder="••••••••" required>
+                </div>
+                <div class="form-error" id="login-error"></div>
+                <button type="submit" class="btn btn-primary" id="login-btn">Sign In</button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="register-form" class="hidden" onsubmit="handleRegister(event)">
+                <h2>Create Account</h2>
+                <p class="subtitle">Start tracking your finances today</p>
+                <div class="form-group">
+                    <label for="reg-username">Username</label>
+                    <input type="text" id="reg-username" placeholder="johndoe" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg-email">Email Address</label>
+                    <input type="email" id="reg-email" placeholder="you@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg-password">Password</label>
+                    <input type="password" id="reg-password" placeholder="Min 6 characters" minlength="6" required>
+                </div>
+                <div class="form-error" id="register-error"></div>
+                <button type="submit" class="btn btn-primary" id="register-btn">Create Account</button>
+            </form>
+        </div>
     </div>
 
     <script src="/js/auth.js"></script>
+    <script>
+        // ── Auth Modal Controls ─────────────────
+        function openAuthModal(tab) {
+            document.getElementById('auth-modal-overlay').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            if (tab) switchTab(tab);
+        }
+
+        function closeAuthModal(e) {
+            if (e && e.target !== e.currentTarget) return;
+            document.getElementById('auth-modal-overlay').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Close on Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeAuthModal();
+        });
+
+        // ── Mobile Menu ─────────────────────────
+        function toggleMobileMenu() {
+            const btn = document.getElementById('mobile-menu-btn');
+            const links = document.getElementById('nav-links');
+            btn.classList.toggle('active');
+            links.classList.toggle('active');
+        }
+
+        // ── Navbar scroll effect ────────────────
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('landing-nav');
+            nav.classList.toggle('scrolled', window.scrollY > 50);
+        });
+
+        // ── Smooth scroll for anchor links ──────
+        document.querySelectorAll('a[href^="#"]').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = document.querySelector(link.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    // Close mobile menu if open
+                    document.getElementById('mobile-menu-btn').classList.remove('active');
+                    document.getElementById('nav-links').classList.remove('active');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
