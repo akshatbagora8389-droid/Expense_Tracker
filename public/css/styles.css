@@ -122,22 +122,20 @@ a:hover {
     gap: 10px;
     font-size: 1.5rem;
     font-weight: 700;
-    background: var(--gradient-primary);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: white;
 }
 
 .navbar .logo .logo-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    background: var(--gradient-primary);
+    width: 42px;
+    height: 42px;
     display: flex;
     align-items: center;
     justify-content: center;
-    -webkit-text-fill-color: white;
-    font-size: 1.1rem;
+}
+.navbar .logo .logo-icon img {
+    width: 100% !important;
+    height: 100% !important;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
 }
 
 /* Hero */
@@ -451,22 +449,20 @@ a:hover {
     font-weight: 700;
     margin-bottom: 40px;
     padding: 0 8px;
-    background: var(--gradient-primary);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: white;
 }
 
 .sidebar .logo .logo-icon {
-    width: 34px;
-    height: 34px;
-    border-radius: 10px;
-    background: var(--gradient-primary);
+    width: 38px;
+    height: 38px;
     display: flex;
     align-items: center;
     justify-content: center;
-    -webkit-text-fill-color: white;
-    font-size: 1rem;
+}
+.sidebar .logo .logo-icon img {
+    width: 100% !important;
+    height: 100% !important;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
 }
 
 .sidebar-nav {
@@ -1276,3 +1272,24 @@ a:hover {
         grid-template-columns: 1fr;
     }
 }
+/* GLOBAL LOGO FIXES FOR 3D EMOJIS */
+.logo {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+}
+.logo-icon {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 44px !important;
+    height: 44px !important;
+    background: transparent !important;
+}
+.logo-icon img {
+    width: 100% !important;
+    height: 100% !important;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3)) !important;
+}
+
+.logo { color: white !important; -webkit-text-fill-color: white !important; }

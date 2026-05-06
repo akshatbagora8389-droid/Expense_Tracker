@@ -11,7 +11,7 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 import mysql.connector
 import bcrypt
-from openai import OpenAI
+import google.generativeai as genai
 
 load_dotenv()
 
@@ -43,12 +43,12 @@ logging.basicConfig(
 )
 
 # ──────────────────────────────────────────────
-# Grok AI configuration (xAI)
+# Google Generative AI (Gemini) configuration
 # ──────────────────────────────────────────────
-grok_client = OpenAI(
-    api_key=os.getenv('GROK_API_KEY', ''),
-    base_url='https://api.x.ai/v1',
-)
+gemini_api_key = os.getenv('GEMINI_API_KEY', '')
+if gemini_api_key:
+    genai.configure(api_key=gemini_api_key)
+# We handle missing keys gracefully in the route below.
 
 # ──────────────────────────────────────────────
 # Database helpers
@@ -461,7 +461,7 @@ def ai_chat():
     cur.close()
     conn.close()
 
-    # Build context for Grok
+    # Build context for Gemini
     financial_context = (
         f"User's Financial Summary:\n"
         f"- Total Income: ₹{total_income:,.2f}\n"
@@ -484,18 +484,17 @@ def ai_chat():
         "Currency is Indian Rupees (₹).\n\n"
         f"{financial_context}"
     )
+    
+    # Check if API key is set
+    if not os.getenv('GEMINI_API_KEY'):
+        return jsonify({'reply': "⚠️ The Gemini API key is missing. Please set GEMINI_API_KEY in the .env file."})
 
     try:
-        response = grok_client.chat.completions.create(
-            model='grok-3-mini-fast',
-            messages=[
-                {'role': 'system', 'content': system_prompt},
-                {'role': 'user', 'content': user_message},
-            ],
-        )
-        reply = response.choices[0].message.content
+        model = genai.GenerativeModel('gemini-2.5-flash', system_instruction=system_prompt)
+        response = model.generate_content(user_message)
+        reply = response.text
     except Exception as e:
-        app.logger.error(f"Grok API error: {type(e).__name__}: {e}")
+        app.logger.error(f"Gemini API error: {type(e).__name__}: {e}")
         error_str = str(e).lower()
         if '429' in error_str or 'quota' in error_str or 'rate' in error_str:
             reply = ("⚠️ The AI advisor's API rate limit has been reached. "
