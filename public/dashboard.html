@@ -1,174 +1,329 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>Dashboard — ExpenseIQ</title>
-    <link rel="stylesheet" href="/css/styles.css">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-container": "#1a5319",
+                    "on-secondary-fixed-variant": "#930000",
+                    "on-secondary": "#ffffff",
+                    "on-tertiary-container": "#7bc1d7",
+                    "primary-fixed": "#b3f3a6",
+                    "outline-variant": "#c1c9bb",
+                    "tertiary-container": "#004f60",
+                    "surface": "#fbf9f4",
+                    "primary-fixed-dim": "#98d68c",
+                    "on-surface-variant": "#41493e",
+                    "on-surface": "#1b1c19",
+                    "on-secondary-container": "#fffbff",
+                    "outline": "#71796d",
+                    "on-tertiary-fixed": "#001f27",
+                    "surface-container": "#f0eee9",
+                    "secondary": "#bb0402",
+                    "surface-bright": "#fbf9f4",
+                    "secondary-fixed": "#ffdad4",
+                    "error": "#ba1a1a",
+                    "on-primary-fixed": "#002202",
+                    "on-tertiary": "#ffffff",
+                    "surface-variant": "#e4e2dd",
+                    "on-primary": "#ffffff",
+                    "inverse-surface": "#30312e",
+                    "surface-container-lowest": "#ffffff",
+                    "on-error": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "on-primary-fixed-variant": "#185218",
+                    "tertiary-fixed-dim": "#8bd1e8",
+                    "on-secondary-fixed": "#410000",
+                    "surface-container-high": "#eae8e3",
+                    "surface-dim": "#dbdad5",
+                    "inverse-on-surface": "#f2f1ec",
+                    "tertiary-fixed": "#b2ebff",
+                    "surface-container-highest": "#e4e2dd",
+                    "primary": "#003b05",
+                    "surface-tint": "#326a2d",
+                    "secondary-container": "#e02a1b",
+                    "tertiary": "#003743",
+                    "on-error-container": "#93000a",
+                    "secondary-fixed-dim": "#ffb4a8",
+                    "on-tertiary-fixed-variant": "#004e5f",
+                    "on-primary-container": "#89c67e",
+                    "background": "#fbf9f4",
+                    "surface-container-low": "#f5f3ee",
+                    "on-background": "#1b1c19",
+                    "inverse-primary": "#98d68c"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "16px",
+                    "xl": "24px",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "sidebar-width": "260px",
+                    "margin-mobile": "16px",
+                    "margin-desktop": "32px",
+                    "card-padding": "24px",
+                    "gutter": "24px"
+            },
+            "fontFamily": {
+                    "body-sm": ["Manrope"],
+                    "display": ["Manrope"],
+                    "body-lg": ["Manrope"],
+                    "headline-lg-mobile": ["Manrope"],
+                    "headline-md": ["Manrope"],
+                    "headline-lg": ["Manrope"],
+                    "label-caps": ["Manrope"]
+            },
+            "fontSize": {
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "display": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+    <style>
+        body { font-family: 'Manrope', sans-serif; background-color: #fbf9f4; color: #1b1c19; }
+        .glass-card {
+            background: rgba(0, 59, 5, 0.9);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 24px;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .card-shadow {
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        /* Custom Toast Notification styles */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #FFFFFF;
+            border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            padding: 16px 24px;
+            border-radius: 12px;
+            color: #1b1c19;
+            font-size: 0.92rem;
+            font-weight: 700;
+            z-index: 3000;
+            transform: translateY(100px);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .toast.error {
+            border-left: 4px solid #ba1a1a;
+            color: #ba1a1a;
+        }
+        .toast.success {
+            border-left: 4px solid #003b05;
+            color: #003b05;
+        }
+    </style>
 </head>
-
-<body>
-    <div class="app-layout">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="logo">
-                <div class="logo-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M3 3v18h18M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/>
-                    </svg>
-                </div>
-                ExpenseIQ
+<body class="min-h-screen">
+    <!-- Sidebar Navigation -->
+    <aside class="fixed left-0 top-0 h-screen w-[260px] border-r border-outline-variant/30 bg-surface-container-low flex flex-col py-8 px-4 gap-2 z-50">
+        <div class="mb-10 px-4">
+            <h1 class="font-headline-md text-headline-md font-extrabold text-primary">ExpenseIQ</h1>
+            <p class="text-body-sm text-on-surface-variant">Financial Clarity</p>
+        </div>
+        <nav class="flex-1 flex flex-col gap-1">
+            <a class="bg-primary-container/10 text-primary font-bold rounded-full px-4 py-2 flex items-center gap-3 transition-transform duration-150 scale-100 active:scale-95" href="/dashboard">
+                <span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                <span class="font-body-lg text-body-lg tracking-tight">Dashboard</span>
+            </a>
+            <a class="text-on-surface-variant hover:bg-surface-container-high hover:text-primary px-4 py-2 flex items-center gap-3 rounded-full transition-colors duration-200" href="/income-page">
+                <span class="material-symbols-outlined" data-icon="payments">payments</span>
+                <span class="font-body-lg text-body-lg tracking-tight">Income</span>
+            </a>
+            <a class="text-on-surface-variant hover:bg-surface-container-high hover:text-primary px-4 py-2 flex items-center gap-3 rounded-full transition-colors duration-200" href="/expenses-page">
+                <span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+                <span class="font-body-lg text-body-lg tracking-tight">Expenses</span>
+            </a>
+            <a class="text-on-surface-variant hover:bg-surface-container-high hover:text-primary px-4 py-2 flex items-center gap-3 rounded-full transition-colors duration-200" href="/advisor-page">
+                <span class="material-symbols-outlined" data-icon="psychology">psychology</span>
+                <span class="font-body-lg text-body-lg tracking-tight">AI Advisor</span>
+            </a>
+        </nav>
+        
+        <!-- Profile & Sign Out Section -->
+        <div class="mt-auto pt-4 border-t border-outline-variant/30 flex flex-col gap-3">
+            <div class="flex items-center gap-3 px-2">
+                <div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-[18px]" id="user-avatar">U</div>
+                <span class="font-body-lg font-bold text-on-surface-variant truncate" id="user-name">User</span>
             </div>
-            <nav class="sidebar-nav">
-                <a href="/dashboard" class="nav-link active">
-                    <span class="nav-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>
-                        </svg>
-                    </span> 
-                    <span>Dashboard</span>
-                </a>
-                <a href="/income-page" class="nav-link">
-                    <span class="nav-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
-                        </svg>
-                    </span> 
-                    <span>Income</span>
-                </a>
-                <a href="/expenses-page" class="nav-link">
-                    <span class="nav-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
-                        </svg>
-                    </span> 
-                    <span>Expenses</span>
-                </a>
-                <a href="/advisor-page" class="nav-link">
-                    <span class="nav-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
-                        </svg>
-                    </span> 
-                    <span>AI Advisor</span>
-                </a>
-            </nav>
-            <div class="sidebar-footer">
-                <div class="user-info">
-                    <div class="user-avatar" id="user-avatar">U</div>
-                    <span class="user-name" id="user-name">User</span>
-                </div>
-                <button class="btn-logout" id="logout-btn" onclick="handleLogout()">
-                    <span class="logout-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
-                        </svg>
-                    </span>
-                    <span>Sign Out</span>
-                </button>
-            </div>
-        </aside>
+            <button onclick="handleLogout()" class="w-full py-2 bg-error-container/10 border border-error/20 text-error hover:bg-error/10 px-4 flex items-center justify-center gap-2 rounded-full font-bold text-body-sm transition-colors duration-200">
+                <span class="material-symbols-outlined text-[18px]" data-icon="logout">logout</span>
+                <span>Sign Out</span>
+            </button>
+        </div>
+    </aside>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <div class="page-header">
-                <h1>Dashboard</h1>
-                <p>Your financial overview at a glance</p>
-            </div>
-
-            <!-- Stats Cards -->
-            <div class="stats-grid">
-                <div class="stat-card income">
-                    <div class="stat-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
-                        </svg>
-                    </div>
-                    <div class="stat-label">Total Income</div>
-                    <div class="stat-value" id="total-income">₹0</div>
+    <!-- Main Content Area -->
+    <main class="ml-[260px] min-h-screen relative">
+        <!-- Top App Bar -->
+        <header class="sticky top-0 right-0 h-20 w-full z-40 backdrop-blur-md bg-surface/80 flex justify-between items-center px-margin-desktop border-b border-outline-variant/10">
+            <h2 class="font-headline-md text-headline-md font-bold text-primary">Overview</h2>
+            <div class="flex items-center gap-6">
+                <div class="relative hidden md:flex items-center">
+                    <span class="material-symbols-outlined absolute left-3 text-outline" data-icon="search">search</span>
+                    <input class="pl-10 pr-4 py-2 bg-surface-container-high border-none rounded-full text-body-sm focus:ring-2 focus:ring-primary/20 w-64" placeholder="Search transactions..." type="text"/>
                 </div>
-                <div class="stat-card expense">
-                    <div class="stat-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
-                        </svg>
-                    </div>
-                    <div class="stat-label">Total Expenses</div>
-                    <div class="stat-value" id="total-expenses">₹0</div>
-                </div>
-                <div class="stat-card balance">
-                    <div class="stat-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                        </svg>
-                    </div>
-                    <div class="stat-label">Balance</div>
-                    <div class="stat-value" id="balance">₹0</div>
+                <div class="flex items-center gap-4">
+                    <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high text-on-surface-variant">
+                        <span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+                    </button>
+                    <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high text-on-surface-variant">
+                        <span class="material-symbols-outlined" data-icon="settings">settings</span>
+                    </button>
+                    <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary/10 bg-primary/15 text-primary flex items-center justify-center font-bold" id="top-avatar">U</div>
                 </div>
             </div>
+        </header>
 
-            <!-- Charts -->
-            <div class="charts-grid">
-                <div class="chart-card">
-                    <h3>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" y1="12" x2="22" y2="12"/>
-                        </svg>
-                        Income by Source
-                    </h3>
-                    <div class="chart-container">
-                        <canvas id="income-pie-chart"></canvas>
+        <!-- Bento Grid Dashboard -->
+        <div class="p-margin-desktop">
+            <div class="bento-grid">
+                <!-- Hero Card: Total Balance -->
+                <div class="col-span-12 lg:col-span-4 h-64 rounded-xl glass-card p-card-padding flex flex-col justify-between text-white relative overflow-hidden group card-shadow">
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-white/70 font-label-caps mb-1">TOTAL BALANCE</p>
+                                <h3 id="balance" class="text-[36px] font-extrabold tracking-tight leading-none">₹0.00</h3>
+                            </div>
+                            <div class="w-12 h-8 bg-white/20 rounded-md flex items-center justify-center backdrop-blur-sm border border-white/20">
+                                <div class="w-6 h-4 bg-primary-fixed-dim/40 rounded-sm"></div>
+                            </div>
+                        </div>
                     </div>
+                    <div class="relative z-10 flex justify-between items-end">
+                        <div>
+                            <p class="text-white/50 text-[10px] font-label-caps mb-1 tracking-widest">HOLDER</p>
+                            <p id="card-holder" class="font-body-lg font-semibold uppercase tracking-wider">User</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-white/50 text-[10px] font-label-caps mb-1 tracking-widest">STATUS</p>
+                            <p class="font-body-lg font-semibold tracking-wider uppercase">Active</p>
+                        </div>
+                    </div>
+                    <!-- Decorative Orbs -->
+                    <div class="absolute -top-12 -right-12 w-48 h-48 bg-primary-fixed/20 rounded-full blur-3xl"></div>
+                    <div class="absolute -bottom-12 -left-12 w-32 h-32 bg-secondary/10 rounded-full blur-2xl"></div>
                 </div>
-                <div class="chart-card">
-                    <h3>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
-                        </svg>
-                        Expenses Over Time
-                    </h3>
-                    <div class="chart-container">
+
+                <!-- Cash Flow Area Chart -->
+                <div class="col-span-12 lg:col-span-8 bg-white rounded-xl p-card-padding card-shadow flex flex-col justify-between">
+                    <div class="flex justify-between items-center mb-6">
+                        <h4 class="font-headline-md text-primary">Cash Flow</h4>
+                        <div class="flex gap-6">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-primary"></span>
+                                <span class="text-body-sm text-on-surface-variant">Income: <span id="total-income" class="font-bold text-primary">₹0.00</span></span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-secondary"></span>
+                                <span class="text-body-sm text-on-surface-variant">Expenses: <span id="total-expenses" class="font-bold text-secondary">₹0.00</span></span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Chart Canvas -->
+                    <div class="chart-container" style="position: relative; height: 180px; width: 100%;">
                         <canvas id="expenses-line-chart"></canvas>
                     </div>
                 </div>
-            </div>
 
-            <!-- Recent Transactions -->
-            <div class="recent-card">
-                <h3>Recent Transactions</h3>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Type</th>
-                            <th>Label</th>
-                            <th>Amount</th>
-                            <th>Date</th>
-                        </tr>
-                    </thead>
-                    <tbody id="recent-tbody">
-                        <tr>
-                            <td colspan="4" class="empty-state" style="padding:40px">
-                                <div class="empty-icon">
-                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-muted)">
-                                        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-                                    </svg>
-                                </div>
-                                <h3>No transactions yet</h3>
-                                <p>Add income or expenses to see them here</p>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </main>
-    </div>
+                <!-- Income Sources breakdown (Doughnut/Pie) -->
+                <div class="col-span-12 lg:col-span-4 bg-white rounded-xl p-card-padding card-shadow flex flex-col justify-between">
+                    <h4 class="font-headline-md text-primary mb-6">Income Sources</h4>
+                    <!-- Chart Canvas -->
+                    <div class="chart-container" style="position: relative; height: 180px; width: 100%; margin-bottom: 12px;">
+                        <canvas id="income-pie-chart"></canvas>
+                    </div>
+                </div>
 
-    <!-- Toast -->
+                <!-- Recent Activity -->
+                <div class="col-span-12 lg:col-span-5 bg-white rounded-xl p-card-padding card-shadow h-full flex flex-col justify-between">
+                    <div class="flex justify-between items-center mb-6">
+                        <h4 class="font-headline-md text-primary">Recent Activity</h4>
+                        <button class="text-primary text-body-sm font-bold hover:underline" onclick="window.location.href='/expenses-page'">View All</button>
+                    </div>
+                    <!-- Activity List Container -->
+                    <div class="space-y-4 flex-1 overflow-y-auto max-h-[260px] pr-2" id="recent-activity-list">
+                        <!-- Dynamic items will be injected here -->
+                        <div class="text-center py-8 text-on-surface-variant">Loading activities...</div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions & Insights -->
+                <div class="col-span-12 lg:col-span-3 flex flex-col gap-6">
+                    <div class="bg-white rounded-xl p-card-padding card-shadow flex-1">
+                        <h4 class="font-headline-md text-primary mb-6">Quick Actions</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <button onclick="window.location.href='/expenses-page'" class="flex flex-col items-center justify-center gap-2 p-4 bg-surface-container rounded-xl hover:bg-primary/10 hover:text-primary transition-all group text-center">
+                                <span class="material-symbols-outlined text-[28px] text-primary" data-icon="add_circle">add_circle</span>
+                                <span class="text-[12px] font-bold">Add Expense</span>
+                            </button>
+                            <button onclick="window.location.href='/income-page'" class="flex flex-col items-center justify-center gap-2 p-4 bg-surface-container rounded-xl hover:bg-primary/10 hover:text-primary transition-all group text-center">
+                                <span class="material-symbols-outlined text-[28px] text-primary" data-icon="payments">payments</span>
+                                <span class="text-[12px] font-bold">Add Income</span>
+                            </button>
+                            <button onclick="window.location.href='/advisor-page'" class="flex flex-col items-center justify-center gap-2 p-4 bg-surface-container rounded-xl hover:bg-primary/10 hover:text-primary transition-all group text-center col-span-2">
+                                <span class="material-symbols-outlined text-[28px] text-primary" data-icon="psychology">psychology</span>
+                                <span class="text-[12px] font-bold">Ask AI Financial Advisor</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="bg-primary/5 rounded-xl p-card-padding border border-primary/10 flex flex-col">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="material-symbols-outlined text-primary" data-icon="auto_awesome">auto_awesome</span>
+                            <span class="font-label-caps text-primary">AI INSIGHT</span>
+                        </div>
+                        <p class="text-body-sm leading-relaxed text-on-surface-variant">
+                            Track your categories and chat with the AI Financial Advisor in the side menu to get customized, real-time insights on your spending habits.
+                        </p>
+                        <button onclick="window.location.href='/advisor-page'" class="mt-4 text-primary font-bold text-[12px] flex items-center gap-1 hover:gap-2 transition-all">
+                            Chat Now <span class="material-symbols-outlined text-[16px]" data-icon="arrow_forward">arrow_forward</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Notification -->
     <div class="toast" id="toast"></div>
 
     <script src="/js/dashboard.js"></script>
 </body>
-
 </html>

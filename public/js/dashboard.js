@@ -196,33 +196,63 @@ function renderExpensesChart(data) {
     });
 }
 
+function getTransactionIcon(type, label) {
+    if (type === 'income') return 'payments';
+    const cleanLabel = label.toLowerCase();
+    const icons = {
+        'food': 'restaurant',
+        'lifestyle': 'sports_esports',
+        'shopping': 'shopping_bag',
+        'bills': 'receipt',
+        'entertainment': 'movie',
+        'health': 'medical_services',
+        'education': 'school',
+        'rent': 'home',
+        'transport': 'directions_car',
+        'salary': 'work',
+        'freelance': 'laptop_mac'
+    };
+    for (const [key, value] of Object.entries(icons)) {
+        if (cleanLabel.includes(key)) return value;
+    }
+    return 'receipt_long';
+}
+
 function renderRecentTransactions(data) {
-    const tbody = document.getElementById('recent-tbody');
+    const container = document.getElementById('recent-activity-list');
 
     if (!data.length) {
-        tbody.innerHTML = `
-            <tr><td colspan="4" class="empty-state" style="padding:40px">
-                <div class="empty-icon" style="margin-bottom: 12px;">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-muted)">
-                        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-                    </svg>
-                </div>
-                <h3>No transactions yet</h3>
-                <p>Add income or expenses to see them here</p>
-            </td></tr>`;
+        container.innerHTML = `
+            <div class="text-center py-8 text-on-surface-variant flex flex-col items-center justify-center gap-3">
+                <span class="material-symbols-outlined text-[36px] text-outline/50">receipt_long</span>
+                <p class="font-bold">No transactions yet</p>
+                <p class="text-[12px] text-outline">Add transactions to see them here</p>
+            </div>`;
         return;
     }
 
-    tbody.innerHTML = data.map(t => `
-        <tr>
-            <td><span class="badge badge-${t.type === 'income' ? 'income' : 'expense'}">${t.type}</span></td>
-            <td>${t.label}</td>
-            <td class="amount ${t.type === 'income' ? 'income-amount' : 'expense-amount'}">
-                ${t.type === 'income' ? '+' : '-'}${formatCurrency(t.amount)}
-            </td>
-            <td>${t.date}</td>
-        </tr>
-    `).join('');
+    container.innerHTML = data.map(t => {
+        const icon = getTransactionIcon(t.type, t.label);
+        const isIncome = t.type === 'income';
+        const badgeClass = isIncome ? 'bg-primary/10 text-primary' : 'bg-secondary/10 text-secondary';
+        const amtClass = isIncome ? 'text-primary' : 'text-secondary';
+        const amtPrefix = isIncome ? '+' : '-';
+        
+        return `
+            <div class="flex items-center justify-between group cursor-pointer p-2 rounded-xl hover:bg-surface-container-high transition-colors">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 ${badgeClass} rounded-lg flex items-center justify-center font-bold">
+                        <span class="material-symbols-outlined">${icon}</span>
+                    </div>
+                    <div>
+                        <p class="font-body-lg font-bold text-on-surface">${t.label}</p>
+                        <p class="text-body-sm text-on-surface-variant capitalize">${t.type} • ${t.date}</p>
+                    </div>
+                </div>
+                <p class="text-body-lg font-bold ${amtClass}">${amtPrefix}${formatCurrency(t.amount)}</p>
+            </div>
+        `;
+    }).join('');
 }
 
 async function loadDashboard() {
@@ -250,6 +280,8 @@ async function loadDashboard() {
 
     document.getElementById('user-name').textContent = user.username;
     document.getElementById('user-avatar').textContent = user.username.charAt(0).toUpperCase();
+    document.getElementById('top-avatar').textContent = user.username.charAt(0).toUpperCase();
+    document.getElementById('card-holder').textContent = user.username;
 
     loadDashboard();
 })();
