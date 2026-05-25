@@ -24,13 +24,28 @@ app = Flask(__name__, static_folder='public', static_url_path='')
 # Secret key — MUST be set via env in production
 secret_key = os.getenv('FLASK_SECRET_KEY')
 if not secret_key or secret_key == 'change-me':
-    import secrets
-    secret_key = secrets.token_hex(32)
-    app.logger.warning(
-        'FLASK_SECRET_KEY not set — using a random key. '
-        'Sessions will NOT persist across restarts. '
-        'Set FLASK_SECRET_KEY in your .env or environment variables.'
-    )
+    # Fallback: Read or generate a key written to disk to sync across multiple Gunicorn workers
+    key_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'secret.key')
+    if os.path.exists(key_file):
+        try:
+            with open(key_file, 'r', encoding='utf-8') as f:
+                secret_key = f.read().strip()
+        except Exception:
+            pass
+            
+    if not secret_key:
+        import secrets
+        secret_key = secrets.token_hex(32)
+        try:
+            with open(key_file, 'w', encoding='utf-8') as f:
+                f.write(secret_key)
+        except Exception as e:
+            app.logger.error(f"Could not save secret key to file: {e}")
+            
+        app.logger.warning(
+            'FLASK_SECRET_KEY not set — generated and saved a random key in secret.key to sync workers. '
+            'Set FLASK_SECRET_KEY in your Railway variables to override.'
+        )
 app.secret_key = secret_key
 
 from datetime import timedelta
