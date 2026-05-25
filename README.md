@@ -4,11 +4,13 @@ A full-stack expense tracking application with AI-powered financial advice, buil
 
 ## Features
 
-- 📊 **Dashboard** — Summary cards, pie charts, and line graphs for spending insights
-- 💰 **Income Management** — Add, view, and delete income entries
-- 💸 **Expense Tracking** — Categorise and track spending
-- 🤖 **AI Financial Advisor** — Personalised advice powered by Google Gemini
-- 🔐 **User Authentication** — Secure login/register with bcrypt
+- 🎨 **Warm Beige & Green Theme** — Polished, premium minimalism with organic color-coded badges and custom SVG icons (no generic emojis)
+- 📊 **Dashboard** — Beautiful pie charts and line graphs styled in organic tones for clear spending insights
+- 💰 **Income Management** — Track and manage all your income sources
+- 💸 **Expense Tracking** — Categorize and track all spending dynamically
+- 🤖 **AI Financial Advisor** — Get personalized budgeting tips powered by Google Gemini
+- 🔐 **Secure Auth & Google Login** — Traditional bcrypt email login plus **Google Sign In** integration
+- 🧪 **Developer OAuth Mock Mode** — Simulated developer authorization screen to test login/signup flows locally without API keys
 
 ## Tech Stack
 
@@ -16,9 +18,9 @@ A full-stack expense tracking application with AI-powered financial advice, buil
 |---|---|
 | Backend | Python 3.10+, Flask |
 | Database | MySQL 8+ |
-| Frontend | HTML, CSS, JavaScript |
+| Frontend | HTML, CSS, JavaScript (Chart.js) |
 | AI | Google Gemini API |
-| Auth | bcrypt + Flask sessions |
+| Auth | bcrypt, PyJWT, Google OAuth2 |
 
 ## Quick Start (Local)
 
@@ -53,6 +55,8 @@ Edit `.env` and fill in your values:
 - `FLASK_SECRET_KEY` — Generate with: `python -c "import secrets; print(secrets.token_hex(32))"`
 - `MYSQL_PASSWORD` — Your MySQL root password
 - `GEMINI_API_KEY` — Your Google Gemini API key
+- `DEV_MODE_OAUTH` — Set to `true` to test Google sign-in locally using a simulated developer accounts selection page (no setup needed). Set to `false` to connect real accounts.
+- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — Your Google Console Web Client credentials (required when `DEV_MODE_OAUTH=false`)
 
 ### 4. Run
 

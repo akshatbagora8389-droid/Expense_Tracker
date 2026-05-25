@@ -34,11 +34,19 @@ function formatCurrency(n) {
     return '₹' + Number(n).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
 
-// Chart color palette
+// Chart color palette matching warm minimal beige & organic green theme
 const COLORS = [
-    '#6366f1', '#8b5cf6', '#a78bfa', '#c084fc',
-    '#10b981', '#34d399', '#3b82f6', '#60a5fa',
-    '#f59e0b', '#fbbf24', '#ec4899', '#f472b6',
+    '#2D6A4F', // Forest Green (Income/Primary)
+    '#40916C', // Medium Sea Green
+    '#52B788', // Light Sage Green
+    '#74C69D', // Soft Mint
+    '#D97706', // Warm Amber
+    '#B45309', // Dark Clay Amber
+    '#CA6702', // Ochre / Copper
+    '#9C6644', // Slate Espresso
+    '#DDB892', // Sand
+    '#57C5B6', // Soft Teal
+    '#1A5F7A'  // Deep Ocean Blue
 ];
 
 function renderIncomeChart(data) {
@@ -49,11 +57,18 @@ function renderIncomeChart(data) {
     if (!data.length) {
         incomeChart = new Chart(ctx, {
             type: 'pie',
-            data: { labels: ['No data'], datasets: [{ data: [1], backgroundColor: ['#1e293b'] }] },
+            data: { labels: ['No data'], datasets: [{ data: [1], backgroundColor: ['#F3ECE2'] }] },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { labels: { color: '#64748b' } } }
+                plugins: { 
+                    legend: { 
+                        labels: { 
+                            color: '#70655C',
+                            font: { family: 'Plus Jakarta Sans', size: 12 }
+                        } 
+                    } 
+                }
             }
         });
         return;
@@ -77,17 +92,17 @@ function renderIncomeChart(data) {
                 legend: {
                     position: 'bottom',
                     labels: {
-                        color: '#94a3b8',
+                        color: '#70655C',
                         padding: 16,
                         usePointStyle: true,
                         pointStyleWidth: 12,
-                        font: { family: 'Inter', size: 12 }
+                        font: { family: 'Plus Jakarta Sans', size: 12, weight: '500' }
                     }
                 },
                 tooltip: {
-                    backgroundColor: '#1e293b',
-                    titleColor: '#f1f5f9',
-                    bodyColor: '#94a3b8',
+                    backgroundColor: '#2C2520',
+                    titleColor: '#FAF8F5',
+                    bodyColor: '#F3ECE2',
                     padding: 12,
                     cornerRadius: 10,
                     callbacks: {
@@ -107,14 +122,14 @@ function renderExpensesChart(data) {
     if (!data.length) {
         expensesChart = new Chart(ctx, {
             type: 'line',
-            data: { labels: ['No data'], datasets: [{ data: [0], borderColor: '#1e293b' }] },
+            data: { labels: ['No data'], datasets: [{ data: [0], borderColor: '#F3ECE2' }] },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: {
-                    x: { ticks: { color: '#64748b' }, grid: { color: 'rgba(255,255,255,0.03)' } },
-                    y: { ticks: { color: '#64748b' }, grid: { color: 'rgba(255,255,255,0.03)' } }
+                    x: { ticks: { color: '#70655C' }, grid: { color: 'rgba(44, 37, 32, 0.05)' } },
+                    y: { ticks: { color: '#70655C' }, grid: { color: 'rgba(44, 37, 32, 0.05)' } }
                 }
             }
         });
@@ -122,8 +137,8 @@ function renderExpensesChart(data) {
     }
 
     const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-    gradient.addColorStop(0, 'rgba(239, 68, 68, 0.25)');
-    gradient.addColorStop(1, 'rgba(239, 68, 68, 0.0)');
+    gradient.addColorStop(0, 'rgba(180, 83, 9, 0.15)'); // Warm Amber/Clay gradient fill
+    gradient.addColorStop(1, 'rgba(180, 83, 9, 0.0)');
 
     expensesChart = new Chart(ctx, {
         type: 'line',
@@ -132,13 +147,13 @@ function renderExpensesChart(data) {
             datasets: [{
                 label: 'Expenses',
                 data: data.map(d => d.total),
-                borderColor: '#ef4444',
+                borderColor: '#B45309', // Warm Amber/Clay for expenses line
                 backgroundColor: gradient,
                 borderWidth: 3,
                 tension: 0.4,
                 fill: true,
-                pointBackgroundColor: '#ef4444',
-                pointBorderColor: '#0a0e1a',
+                pointBackgroundColor: '#B45309',
+                pointBorderColor: '#FFFFFF', // Clean border matching card background
                 pointBorderWidth: 2,
                 pointRadius: 5,
                 pointHoverRadius: 8,
@@ -151,9 +166,9 @@ function renderExpensesChart(data) {
             plugins: {
                 legend: { display: false },
                 tooltip: {
-                    backgroundColor: '#1e293b',
-                    titleColor: '#f1f5f9',
-                    bodyColor: '#94a3b8',
+                    backgroundColor: '#2C2520',
+                    titleColor: '#FAF8F5',
+                    bodyColor: '#F3ECE2',
                     padding: 12,
                     cornerRadius: 10,
                     callbacks: {
@@ -163,18 +178,18 @@ function renderExpensesChart(data) {
             },
             scales: {
                 x: {
-                    ticks: { color: '#64748b', font: { family: 'Inter', size: 11 } },
-                    grid: { color: 'rgba(255,255,255,0.03)' },
-                    border: { color: 'rgba(255,255,255,0.06)' }
+                    ticks: { color: '#70655C', font: { family: 'Plus Jakarta Sans', size: 11 } },
+                    grid: { color: 'rgba(44, 37, 32, 0.04)' },
+                    border: { color: 'rgba(44, 37, 32, 0.06)' }
                 },
                 y: {
                     ticks: {
-                        color: '#64748b',
-                        font: { family: 'Inter', size: 11 },
+                        color: '#70655C',
+                        font: { family: 'Plus Jakarta Sans', size: 11 },
                         callback: v => formatCurrency(v)
                     },
-                    grid: { color: 'rgba(255,255,255,0.03)' },
-                    border: { color: 'rgba(255,255,255,0.06)' }
+                    grid: { color: 'rgba(44, 37, 32, 0.04)' },
+                    border: { color: 'rgba(44, 37, 32, 0.06)' }
                 }
             }
         }
@@ -187,7 +202,11 @@ function renderRecentTransactions(data) {
     if (!data.length) {
         tbody.innerHTML = `
             <tr><td colspan="4" class="empty-state" style="padding:40px">
-                <div class="empty-icon">📭</div>
+                <div class="empty-icon" style="margin-bottom: 12px;">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-muted)">
+                        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                </div>
                 <h3>No transactions yet</h3>
                 <p>Add income or expenses to see them here</p>
             </td></tr>`;

@@ -41,10 +41,14 @@ function renderIncomeTable(data) {
     if (!data.length) {
         tbody.innerHTML = `
             <tr><td colspan="5">
-                <div class="empty-state">
-                    <div class="empty-icon">💵</div>
+                <div class="empty-state" style="padding: 40px;">
+                    <div class="empty-icon" style="margin-bottom: 12px;">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-muted)">
+                            <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
+                        </svg>
+                    </div>
                     <h3>No income yet</h3>
-                    <p>Add your first income entry above</p>
+                    <p>Add your first income entry on the left</p>
                 </div>
             </td></tr>`;
         return;
@@ -57,7 +61,12 @@ function renderIncomeTable(data) {
             <td>${item.date}</td>
             <td>${item.description || '—'}</td>
             <td>
-                <button class="btn btn-danger" onclick="deleteIncome(${item.id})">🗑️ Delete</button>
+                <button class="btn btn-danger" onclick="deleteIncome(${item.id})">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;">
+                        <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
+                    </svg>
+                    Delete
+                </button>
             </td>
         </tr>
     `).join('');
@@ -98,7 +107,7 @@ async function handleAddIncome(e) {
         errEl.classList.add('show');
     }
 
-    btn.innerHTML = '➕ Add Income';
+    btn.innerHTML = 'Add Income';
     btn.disabled = false;
 }
 

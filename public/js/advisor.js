@@ -38,7 +38,11 @@ function appendMessage(role, html) {
 
     const avatar = document.createElement('div');
     avatar.className = `chat-avatar ${role}-avatar`;
-    avatar.textContent = role === 'bot' ? '🤖' : document.getElementById('user-avatar').textContent;
+    if (role === 'bot') {
+        avatar.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4M8 16h8M2 14h1M21 14h1"/></svg>`;
+    } else {
+        avatar.textContent = document.getElementById('user-avatar').textContent;
+    }
 
     const bubble = document.createElement('div');
     bubble.className = `chat-bubble ${role}-bubble`;
@@ -61,7 +65,7 @@ function showTypingIndicator() {
 
     const avatar = document.createElement('div');
     avatar.className = 'chat-avatar bot-avatar';
-    avatar.textContent = '🤖';
+    avatar.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4M8 16h8M2 14h1M21 14h1"/></svg>`;
 
     const bubble = document.createElement('div');
     bubble.className = 'chat-bubble bot-bubble typing-bubble';

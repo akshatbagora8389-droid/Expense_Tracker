@@ -505,6 +505,275 @@ def ai_chat():
     return jsonify({'reply': reply})
 
 # ──────────────────────────────────────────────
+# Google & Apple Authentication Routes
+# ──────────────────────────────────────────────
+
+import uuid
+import urllib.parse
+import bcrypt
+import requests
+import time
+import jwt
+
+def is_oauth_dev_mode():
+    return os.getenv('DEV_MODE_OAUTH', 'false').lower() in ('true', '1', 'yes')
+
+
+def login_or_register_social_user(email, username):
+    if not email:
+        return False
+        
+    conn = get_db()
+    cur = conn.cursor()
+    try:
+        # Check if user exists by email
+        cur.execute("SELECT id, username FROM users WHERE email = %s", (email,))
+        user = cur.fetchone()
+        if user:
+            user_id, existing_username = user
+            session['user_id'] = user_id
+            session['username'] = existing_username
+            return True
+        else:
+            # User doesn't exist, create them
+            base_username = username or email.split('@')[0]
+            # Clean base username
+            base_username = ''.join(c for c in base_username if c.isalnum() or c in '._-')
+            if not base_username:
+                base_username = "user"
+                
+            # Ensure unique username
+            cur.execute("SELECT id FROM users WHERE username = %s", (base_username,))
+            if cur.fetchone():
+                base_username = f"{base_username}_{str(uuid.uuid4())[:6]}"
+            
+            # Generate dummy password hash for security
+            dummy_pwd = uuid.uuid4().hex
+            pwd_hash = bcrypt.hashpw(dummy_pwd.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+            
+            cur.execute(
+                "INSERT INTO users (username, email, password_hash) VALUES (%s, %s, %s)",
+                (base_username, email, pwd_hash)
+            )
+            conn.commit()
+            new_user_id = cur.lastrowid
+            session['user_id'] = new_user_id
+            session['username'] = base_username
+            return True
+    except Exception as e:
+        app.logger.error(f"Social authentication DB error: {e}")
+        return False
+    finally:
+        cur.close()
+        conn.close()
+
+
+# --- Google OAuth Routes ---
+
+@app.route('/api/auth/google')
+def google_login():
+    if is_oauth_dev_mode():
+        return redirect('/api/auth/mock/google')
+        
+    client_id = os.getenv('GOOGLE_CLIENT_ID')
+    redirect_uri = os.getenv('GOOGLE_REDIRECT_URI')
+    google_url = (
+        "https://accounts.google.com/o/oauth2/v2/auth?"
+        "response_type=code&"
+        f"client_id={client_id}&"
+        f"redirect_uri={urllib.parse.quote(redirect_uri)}&"
+        "scope=openid%20email%20profile"
+    )
+    return redirect(google_url)
+
+
+@app.route('/api/auth/google/callback')
+def google_callback():
+    code = request.args.get('code')
+    if not code:
+        return redirect('/?error=no_auth_code')
+        
+    # Handle local dev mock login
+    if is_oauth_dev_mode() and code.startswith('mock-'):
+        email = "test_google@example.com" if "testuser" in code else "new_google@example.com"
+        name = "Test Google User" if "testuser" in code else "New Google User"
+        if login_or_register_social_user(email, name):
+            return redirect('/dashboard')
+        else:
+            return redirect('/?error=social_db_failed')
+
+    # Real Google OAuth exchange
+    try:
+        client_id = os.getenv('GOOGLE_CLIENT_ID')
+        client_secret = os.getenv('GOOGLE_CLIENT_SECRET')
+        redirect_uri = os.getenv('GOOGLE_REDIRECT_URI')
+        
+        token_url = "https://oauth2.googleapis.com/token"
+        data = {
+            'code': code,
+            'client_id': client_id,
+            'client_secret': client_secret,
+            'redirect_uri': redirect_uri,
+            'grant_type': 'authorization_code'
+        }
+        r = requests.post(token_url, data=data)
+        if r.status_code != 200:
+            app.logger.error(f"Google token exchange failed: {r.text}")
+            return redirect('/?error=google_token_failed')
+            
+        tokens = r.json()
+        access_token = tokens.get('access_token')
+        
+        # Get user details
+        userinfo_url = "https://www.googleapis.com/oauth2/v3/userinfo"
+        headers = {'Authorization': f'Bearer {access_token}'}
+        r_user = requests.get(userinfo_url, headers=headers)
+        if r_user.status_code != 200:
+            return redirect('/?error=google_userinfo_failed')
+            
+        user_data = r_user.json()
+        email = user_data.get('email')
+        name = user_data.get('name')
+        
+        if login_or_register_social_user(email, name):
+            return redirect('/dashboard')
+        else:
+            return redirect('/?error=social_db_failed')
+    except Exception as e:
+        app.logger.error(f"Google OAuth Exception: {e}")
+        return redirect('/?error=google_oauth_exception')
+
+
+# --- Apple Sign In Routes Removed ---
+
+
+# --- Developer Mock OAuth Screens ---
+
+@app.route('/api/auth/mock/google')
+def mock_google_auth():
+    return """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Sign in - Google Accounts</title>
+        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <style>
+            body {
+                font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+                background-color: #FAF8F5;
+                color: #2C2520;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 100vh;
+                margin: 0;
+            }
+            .card {
+                background: #FFFFFF;
+                border: 1px solid rgba(44, 37, 32, 0.08);
+                border-radius: 20px;
+                padding: 44px 40px;
+                width: 100%;
+                max-width: 380px;
+                box-shadow: 0 12px 40px rgba(44, 37, 32, 0.04);
+                text-align: center;
+            }
+            .logo {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                font-size: 1.6rem;
+                font-weight: 800;
+                margin-bottom: 28px;
+                letter-spacing: -0.02em;
+            }
+            .logo span:nth-child(1) { color: #4285F4; }
+            .logo span:nth-child(2) { color: #EA4335; }
+            .logo span:nth-child(3) { color: #FBBC05; }
+            .logo span:nth-child(4) { color: #34A853; }
+            h2 {
+                font-size: 1.35rem;
+                font-weight: 700;
+                margin-bottom: 8px;
+                letter-spacing: -0.02em;
+            }
+            p {
+                color: #70655C;
+                font-size: 0.92rem;
+                margin-bottom: 32px;
+                line-height: 1.5;
+            }
+            .account-btn {
+                display: block;
+                width: 100%;
+                padding: 16px;
+                margin-bottom: 14px;
+                background: #FAF8F5;
+                border: 1px solid rgba(44, 37, 32, 0.08);
+                border-radius: 12px;
+                text-align: left;
+                cursor: pointer;
+                font-family: inherit;
+                font-weight: 700;
+                color: #2C2520;
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            .account-btn:hover {
+                background: #F3ECE2;
+                border-color: rgba(44, 37, 32, 0.15);
+                transform: translateY(-1px);
+            }
+            .account-email {
+                font-size: 0.82rem;
+                color: #70655C;
+                font-weight: 500;
+                display: block;
+                margin-top: 3px;
+            }
+            .footer-info {
+                font-size: 0.76rem;
+                color: #968B80;
+                margin-top: 32px;
+                line-height: 1.4;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="card">
+            <div class="logo">
+                <span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span>
+            </div>
+            <h2>Choose an account</h2>
+            <p>to continue to <strong>ExpenseIQ</strong></p>
+            
+            <button class="account-btn" onclick="select('mock-google-code-testuser')">
+                Test Google User
+                <span class="account-email">test_google@example.com</span>
+            </button>
+            <button class="account-btn" onclick="select('mock-google-code-newuser')">
+                New Google User
+                <span class="account-email">new_google@example.com</span>
+            </button>
+            <div class="footer-info">
+                This is a secure developer mock authorization screen. No password is required.
+            </div>
+        </div>
+        <script>
+            function select(code) {
+                window.location.href = '/api/auth/google/callback?code=' + code;
+            }
+        </script>
+    </body>
+    </html>
+    """
+
+
+# --- Apple Mock Auth Removed ---
+
+# ──────────────────────────────────────────────
 # Run
 # ──────────────────────────────────────────────
 
