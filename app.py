@@ -33,6 +33,9 @@ if not secret_key or secret_key == 'change-me':
     )
 app.secret_key = secret_key
 
+from datetime import timedelta
+app.permanent_session_lifetime = timedelta(days=30)
+
 # CORS — allow all origins in dev, restrict in production if needed
 CORS(app, supports_credentials=True)
 
@@ -282,6 +285,10 @@ def login():
 
     session['user_id'] = user_id
     session['username'] = username
+    if data.get('remember'):
+        session.permanent = True
+    else:
+        session.permanent = False
     return jsonify({'message': 'Login successful', 'username': username})
 
 
@@ -592,6 +599,7 @@ def login_or_register_social_user(email, username):
             user_id, existing_username = user
             session['user_id'] = user_id
             session['username'] = existing_username
+            session.permanent = True
             return True
         else:
             # User doesn't exist, create them
@@ -618,6 +626,7 @@ def login_or_register_social_user(email, username):
             new_user_id = cur.lastrowid
             session['user_id'] = new_user_id
             session['username'] = base_username
+            session.permanent = True
             return True
     except Exception as e:
         app.logger.error(f"Social authentication DB error: {e}")

@@ -39,6 +39,7 @@ async function handleLogin(e) {
 
     const email = document.getElementById('login-email').value.trim();
     const password = document.getElementById('login-password').value;
+    const remember = document.getElementById('login-remember').checked;
 
     btn.innerHTML = '<span class="spinner"></span> Signing in...';
     btn.disabled = true;
@@ -47,7 +48,7 @@ async function handleLogin(e) {
         const res = await fetch('/api/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password }),
+            body: JSON.stringify({ email, password, remember }),
         });
         const data = await res.json();
 
