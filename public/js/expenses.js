@@ -124,12 +124,26 @@ async function deleteExpense(id) {
     }
 }
 
+function formatDisplayName(name) {
+    if (!name) return 'USER';
+    let clean = name.split('@')[0];
+    if (clean.toLowerCase().includes('akshat') && clean.toLowerCase().includes('bagora')) {
+        return 'Akshat Bagora';
+    }
+    if (clean.toLowerCase().includes('harshita') && clean.toLowerCase().includes('agrawal')) {
+        return 'Harshita Agrawal';
+    }
+    let split = clean.replace(/([a-z])([A-Z])/g, '$1 $2');
+    return split;
+}
+
 // Init
 (async function () {
     const user = await checkAuth();
     if (!user) return;
-    document.getElementById('user-name').textContent = user.username;
-    document.getElementById('user-avatar').textContent = user.username.charAt(0).toUpperCase();
+    const displayName = formatDisplayName(user.username);
+    document.getElementById('user-name').textContent = displayName;
+    document.getElementById('user-avatar').textContent = displayName.charAt(0).toUpperCase();
     // Set default date to today
     document.getElementById('expense-date').valueAsDate = new Date();
     loadExpenses();
