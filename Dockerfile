@@ -25,5 +25,5 @@ ENV FLASK_APP=app.py
 ENV FLASK_ENV=production
 ENV PYTHONUNBUFFERED=1
 
-# Command to run the application using gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "wsgi:app"]
+# Command to run the application using gunicorn, dynamically binding to the port assigned by Render ($PORT)
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-5000} --workers 2 wsgi:app"]

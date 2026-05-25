@@ -510,10 +510,7 @@ def ai_chat():
 
 import uuid
 import urllib.parse
-import bcrypt
 import requests
-import time
-import jwt
 
 def is_oauth_dev_mode():
     return os.getenv('DEV_MODE_OAUTH', 'false').lower() in ('true', '1', 'yes')
