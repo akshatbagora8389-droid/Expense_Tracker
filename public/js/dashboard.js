@@ -280,7 +280,10 @@ async function loadDashboard() {
 
     document.getElementById('user-name').textContent = user.username;
     document.getElementById('user-avatar').textContent = user.username.charAt(0).toUpperCase();
-    document.getElementById('top-avatar').textContent = user.username.charAt(0).toUpperCase();
+    const topAvatar = document.getElementById('top-avatar');
+    if (topAvatar) {
+        topAvatar.textContent = user.username.charAt(0).toUpperCase();
+    }
     document.getElementById('card-holder').textContent = user.username;
 
     loadDashboard();
