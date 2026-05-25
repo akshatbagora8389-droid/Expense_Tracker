@@ -203,6 +203,28 @@ def expenses_page():
 def advisor_page():
     return send_from_directory('public', 'advisor.html')
 
+@app.route('/api/diagnose')
+def diagnose_env():
+    """Diagnostic route to inspect database environment variables in production (passwords masked)."""
+    return jsonify({
+        'MYSQL_HOST_env': os.getenv('MYSQL_HOST'),
+        'MYSQLHOST_env': os.getenv('MYSQLHOST'),
+        'MYSQL_PORT_env': os.getenv('MYSQL_PORT'),
+        'MYSQLPORT_env': os.getenv('MYSQLPORT'),
+        'MYSQL_USER_env': os.getenv('MYSQL_USER'),
+        'MYSQLUSER_env': os.getenv('MYSQLUSER'),
+        'MYSQL_DATABASE_env': os.getenv('MYSQL_DATABASE'),
+        'MYSQLDATABASE_env': os.getenv('MYSQLDATABASE'),
+        'resolved_host': os.getenv('MYSQL_HOST') or os.getenv('MYSQLHOST') or 'localhost (default)',
+        'resolved_port': os.getenv('MYSQL_PORT') or os.getenv('MYSQLPORT') or '3306 (default)',
+        'resolved_user': os.getenv('MYSQL_USER') or os.getenv('MYSQLUSER') or 'root (default)',
+        'resolved_database': os.getenv('MYSQL_DATABASE') or os.getenv('MYSQLDATABASE') or 'expense_tracker (default)',
+        'password_present': bool(os.getenv('MYSQL_PASSWORD') or os.getenv('MYSQLPASSWORD')),
+        'gemini_api_key_present': bool(os.getenv('GEMINI_API_KEY')),
+        'flask_env': os.getenv('FLASK_ENV', 'not set')
+    })
+
+
 # ──────────────────────────────────────────────
 # Auth API
 # ──────────────────────────────────────────────
