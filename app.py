@@ -46,6 +46,11 @@ if not secret_key or secret_key == 'change-me':
             'FLASK_SECRET_KEY not set — generated and saved a random key in secret.key to sync workers. '
             'Set FLASK_SECRET_KEY in your Railway variables to override.'
         )
+        
+    # Final fallback if file operations fail
+    if not secret_key:
+        secret_key = 'expenseiq-production-fallback-secure-key-2026'
+        
 app.secret_key = secret_key
 
 from datetime import timedelta
