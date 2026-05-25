@@ -1,95 +1,257 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>Expenses — ExpenseIQ</title>
-    <link rel="stylesheet" href="/css/styles.css">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-container": "#1a5319",
+                    "on-secondary-fixed-variant": "#930000",
+                    "on-secondary": "#ffffff",
+                    "on-tertiary-container": "#7bc1d7",
+                    "primary-fixed": "#b3f3a6",
+                    "outline-variant": "#c1c9bb",
+                    "tertiary-container": "#004f60",
+                    "surface": "#fbf9f4",
+                    "primary-fixed-dim": "#98d68c",
+                    "on-surface-variant": "#41493e",
+                    "on-surface": "#1b1c19",
+                    "on-secondary-container": "#fffbff",
+                    "outline": "#71796d",
+                    "on-tertiary-fixed": "#001f27",
+                    "surface-container": "#f0eee9",
+                    "secondary": "#bb0402",
+                    "surface-bright": "#fbf9f4",
+                    "secondary-fixed": "#ffdad4",
+                    "error": "#ba1a1a",
+                    "on-primary-fixed": "#002202",
+                    "on-tertiary": "#ffffff",
+                    "surface-variant": "#e4e2dd",
+                    "on-primary": "#ffffff",
+                    "inverse-surface": "#30312e",
+                    "surface-container-lowest": "#ffffff",
+                    "on-error": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "on-primary-fixed-variant": "#185218",
+                    "tertiary-fixed-dim": "#8bd1e8",
+                    "on-secondary-fixed": "#410000",
+                    "surface-container-high": "#eae8e3",
+                    "surface-dim": "#dbdad5",
+                    "inverse-on-surface": "#f2f1ec",
+                    "tertiary-fixed": "#b2ebff",
+                    "surface-container-highest": "#e4e2dd",
+                    "primary": "#003b05",
+                    "surface-tint": "#326a2d",
+                    "secondary-container": "#e02a1b",
+                    "tertiary": "#003743",
+                    "on-error-container": "#93000a",
+                    "secondary-fixed-dim": "#ffb4a8",
+                    "on-tertiary-fixed-variant": "#004e5f",
+                    "on-primary-container": "#89c67e",
+                    "background": "#fbf9f4",
+                    "surface-container-low": "#f5f3ee",
+                    "on-background": "#1b1c19",
+                    "inverse-primary": "#98d68c"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "16px",
+                    "xl": "24px",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "sidebar-width": "260px",
+                    "margin-mobile": "16px",
+                    "margin-desktop": "32px",
+                    "card-padding": "24px",
+                    "gutter": "24px"
+            },
+            "fontFamily": {
+                    "body-sm": ["Manrope"],
+                    "display": ["Manrope"],
+                    "body-lg": ["Manrope"],
+                    "headline-lg-mobile": ["Manrope"],
+                    "headline-md": ["Manrope"],
+                    "headline-lg": ["Manrope"],
+                    "label-caps": ["Manrope"]
+            },
+            "fontSize": {
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "display": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+    <style>
+        body { font-family: 'Manrope', sans-serif; background-color: #fbf9f4; color: #1b1c19; }
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 24px;
+        }
+        .card-shadow {
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #FFFFFF;
+            border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            padding: 16px 24px;
+            border-radius: 12px;
+            color: #1b1c19;
+            font-size: 0.92rem;
+            font-weight: 700;
+            z-index: 3000;
+            transform: translateY(100px);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .toast.error {
+            border-left: 4px solid #ba1a1a;
+            color: #ba1a1a;
+        }
+        .toast.success {
+            border-left: 4px solid #003b05;
+            color: #003b05;
+        }
+        #expense-form-error.show {
+            display: block !important;
+        }
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* Category Badges Styling */
+        .badge-cat {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .badge-cat-food { background: rgba(180, 83, 9, 0.08); color: #B45309; }
+        .badge-cat-transport { background: rgba(26, 95, 122, 0.08); color: #1A5F7A; }
+        .badge-cat-shopping { background: rgba(124, 58, 237, 0.08); color: #7C3AED; }
+        .badge-cat-bills { background: rgba(220, 38, 38, 0.08); color: #DC2626; }
+        .badge-cat-entertainment { background: rgba(219, 39, 119, 0.08); color: #DB2777; }
+        .badge-cat-health { background: rgba(5, 150, 105, 0.08); color: #059669; }
+        .badge-cat-education { background: rgba(37, 99, 235, 0.08); color: #2563EB; }
+        .badge-cat-rent { background: rgba(79, 70, 229, 0.08); color: #4F46E5; }
+        .badge-cat-other { background: rgba(107, 114, 128, 0.08); color: #6B7280; }
+    </style>
 </head>
-
-<body>
-    <div class="app-layout">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="logo">
-                <div class="logo-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M3 3v18h18M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/>
+<body class="min-h-screen">
+    <!-- Sidebar Navigation -->
+    <aside class="fixed left-0 top-0 h-screen w-[260px] border-r border-outline-variant/30 bg-surface-container-low flex flex-col py-8 px-4 gap-2 z-50">
+        <div class="mb-10 px-4">
+            <h1 class="font-headline-md text-headline-md font-extrabold text-primary">ExpenseIQ</h1>
+            <p class="text-body-sm text-on-surface-variant">Financial Clarity</p>
+        </div>
+        <nav class="flex-1 flex flex-col gap-1">
+            <a class="text-on-surface-variant hover:bg-surface-container-high hover:text-primary px-4 py-2 flex items-center gap-3 rounded-full transition-colors duration-200" href="/dashboard">
+                <span class="w-5 h-5 flex items-center justify-center">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+                        <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/>
                     </svg>
-                </div>
-                ExpenseIQ
-            </div>
-            <nav class="sidebar-nav">
-                <a href="/dashboard" class="nav-link">
-                    <span class="nav-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/>
-                        </svg>
-                    </span> 
-                    <span>Dashboard</span>
-                </a>
-                <a href="/income-page" class="nav-link">
-                    <span class="nav-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
-                        </svg>
-                    </span> 
-                    <span>Income</span>
-                </a>
-                <a href="/expenses-page" class="nav-link active">
-                    <span class="nav-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
-                        </svg>
-                    </span> 
-                    <span>Expenses</span>
-                </a>
-                <a href="/advisor-page" class="nav-link">
-                    <span class="nav-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
-                        </svg>
-                    </span> 
-                    <span>AI Advisor</span>
-                </a>
-            </nav>
-            <div class="sidebar-footer">
-                <div class="user-info">
-                    <div class="user-avatar" id="user-avatar">U</div>
-                    <span class="user-name" id="user-name">User</span>
-                </div>
-                <button class="btn-logout" onclick="handleLogout()">
-                    <span class="logout-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
-                        </svg>
-                    </span>
-                    <span>Sign Out</span>
-                </button>
-            </div>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <div class="page-header">
-                <h1>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                </span>
+                <span class="font-body-lg text-body-lg tracking-tight">Dashboard</span>
+            </a>
+            <a class="text-on-surface-variant hover:bg-surface-container-high hover:text-primary px-4 py-2 flex items-center gap-3 rounded-full transition-colors duration-200" href="/income-page">
+                <span class="w-5 h-5 flex items-center justify-center">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+                        <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
+                    </svg>
+                </span>
+                <span class="font-body-lg text-body-lg tracking-tight">Income</span>
+            </a>
+            <a class="bg-primary-container/10 text-primary font-bold rounded-full px-4 py-2 flex items-center gap-3 transition-transform duration-150 scale-100 active:scale-95" href="/expenses-page">
+                <span class="w-5 h-5 flex items-center justify-center">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
                         <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
                     </svg>
-                    Expenses
-                </h1>
-                <p>Track and manage all your spending</p>
+                </span>
+                <span class="font-body-lg text-body-lg tracking-tight">Expenses</span>
+            </a>
+            <a class="text-on-surface-variant hover:bg-surface-container-high hover:text-primary px-4 py-2 flex items-center gap-3 rounded-full transition-colors duration-200" href="/advisor-page">
+                <span class="w-5 h-5 flex items-center justify-center">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+                        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+                    </svg>
+                </span>
+                <span class="font-body-lg text-body-lg tracking-tight">AI Advisor</span>
+            </a>
+        </nav>
+        
+        <!-- Profile & Sign Out Section -->
+        <div class="mt-auto pt-4 border-t border-outline-variant/30 flex flex-col gap-3">
+            <div class="flex items-center gap-3 px-2">
+                <div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-[18px]" id="user-avatar">U</div>
+                <span class="font-body-lg font-bold text-on-surface-variant truncate" id="user-name">User</span>
             </div>
+            <button onclick="handleLogout()" class="w-full py-2 bg-error-container/10 border border-error/20 text-error hover:bg-error/10 px-4 flex items-center justify-center gap-2 rounded-full font-bold text-body-sm transition-colors duration-200">
+                <span class="material-symbols-outlined text-[18px]" data-icon="logout">logout</span>
+                <span>Sign Out</span>
+            </button>
+        </div>
+    </aside>
 
-            <div class="data-layout-grid">
-                <!-- Add Expense Form -->
-                <div class="data-card">
-                    <h3>Add New Expense</h3>
-                    <form id="add-expense-form" onsubmit="handleAddExpense(event)">
-                        <div class="form-group">
-                            <label for="expense-category">Category</label>
-                            <select id="expense-category" required>
+    <!-- Main Content Area -->
+    <main class="ml-[260px] min-h-screen relative">
+        <!-- Top App Bar -->
+        <header class="sticky top-0 right-0 h-20 w-full z-40 backdrop-blur-md bg-surface/80 flex justify-between items-center px-margin-desktop border-b border-outline-variant/10">
+            <h2 class="font-headline-md text-headline-md font-bold text-primary">Expenses</h2>
+            <div class="flex items-center gap-6">
+                <div class="flex items-center gap-4">
+                    <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high text-on-surface-variant">
+                        <span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <div class="p-margin-desktop">
+            <div class="bento-grid">
+                <!-- Add Expense Form (left column) -->
+                <div class="col-span-12 lg:col-span-4 bg-white rounded-xl p-card-padding card-shadow">
+                    <h3 class="font-headline-md text-primary mb-6 text-xl font-bold">Add New Expense</h3>
+                    <form id="add-expense-form" onsubmit="handleAddExpense(event)" class="space-y-4">
+                        <div>
+                            <label for="expense-category" class="block text-body-sm font-semibold text-on-surface-variant mb-2">Category</label>
+                            <select id="expense-category" required class="w-full px-4 py-2 bg-surface-container-low border border-outline-variant/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 text-body-lg">
                                 <option value="">Select category</option>
                                 <option value="Food">🍔 Food</option>
                                 <option value="Transport">🚗 Transport</option>
@@ -102,63 +264,54 @@
                                 <option value="Other">📌 Other</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label for="expense-amount">Amount (₹)</label>
-                            <input type="number" id="expense-amount" placeholder="0.00" step="0.01" min="0.01" required>
+                        <div>
+                            <label for="expense-amount" class="block text-body-sm font-semibold text-on-surface-variant mb-2">Amount (₹)</label>
+                            <input type="number" id="expense-amount" placeholder="0.00" step="0.01" min="0.01" required class="w-full px-4 py-2 bg-surface-container-low border border-outline-variant/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 text-body-lg">
                         </div>
-                        <div class="form-group">
-                            <label for="expense-date">Date</label>
-                            <input type="date" id="expense-date" required>
+                        <div>
+                            <label for="expense-date" class="block text-body-sm font-semibold text-on-surface-variant mb-2">Date</label>
+                            <input type="date" id="expense-date" required class="w-full px-4 py-2 bg-surface-container-low border border-outline-variant/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 text-body-lg">
                         </div>
-                        <div class="form-group">
-                            <label for="expense-desc">Description (optional)</label>
-                            <input type="text" id="expense-desc" placeholder="Brief note about this expense">
+                        <div>
+                            <label for="expense-desc" class="block text-body-sm font-semibold text-on-surface-variant mb-2">Description (optional)</label>
+                            <input type="text" id="expense-desc" placeholder="Brief note about this expense" class="w-full px-4 py-2 bg-surface-container-low border border-outline-variant/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 text-body-lg">
                         </div>
-                        <button type="submit" class="btn btn-primary" id="add-expense-btn" style="width:100%">
+                        <button type="submit" id="add-expense-btn" class="w-full py-3 bg-primary text-white hover:bg-primary/90 font-bold rounded-full transition-all duration-200 mt-4 flex items-center justify-center gap-2">
                             Add Expense
                         </button>
-                        <div class="form-error" id="expense-form-error"></div>
+                        <div class="text-error text-body-sm font-semibold mt-2 hidden" id="expense-form-error"></div>
                     </form>
                 </div>
 
-                <!-- Expenses Table -->
-                <div class="data-card">
-                    <h3>Expense History</h3>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Category</th>
-                                <th>Amount</th>
-                                <th>Date</th>
-                                <th>Description</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="expenses-tbody">
-                            <tr>
-                                <td colspan="5">
-                                    <div class="empty-state">
-                                        <div class="empty-icon">
-                                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-muted)">
-                                                <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
-                                            </svg>
-                                        </div>
-                                        <h3>No expenses yet</h3>
-                                        <p>Add your first expense entry on the left</p>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <!-- Expenses Table (right column) -->
+                <div class="col-span-12 lg:col-span-8 bg-white rounded-xl p-card-padding card-shadow">
+                    <h3 class="font-headline-md text-primary mb-6 text-xl font-bold">Expense History</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-outline-variant/30 text-on-surface-variant font-semibold text-[14px]">
+                                    <th class="pb-4">Category</th>
+                                    <th class="pb-4">Amount</th>
+                                    <th class="pb-4">Date</th>
+                                    <th class="pb-4">Description</th>
+                                    <th class="pb-4">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expenses-tbody" class="divide-y divide-outline-variant/10 text-body-lg text-on-surface">
+                                <tr>
+                                    <td colspan="5" class="py-8 text-center text-on-surface-variant">Loading expense history...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </main>
-    </div>
+        </div>
+    </main>
 
-    <!-- Toast -->
+    <!-- Toast Notification -->
     <div class="toast" id="toast"></div>
 
     <script src="/js/expenses.js"></script>
 </body>
-
 </html>

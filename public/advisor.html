@@ -1,91 +1,331 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>AI Advisor — ExpenseIQ</title>
     <meta name="description" content="Get personalized financial advice powered by AI based on your income and spending data.">
-    <link rel="stylesheet" href="/css/styles.css">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-container": "#1a5319",
+                    "on-secondary-fixed-variant": "#930000",
+                    "on-secondary": "#ffffff",
+                    "on-tertiary-container": "#7bc1d7",
+                    "primary-fixed": "#b3f3a6",
+                    "outline-variant": "#c1c9bb",
+                    "tertiary-container": "#004f60",
+                    "surface": "#fbf9f4",
+                    "primary-fixed-dim": "#98d68c",
+                    "on-surface-variant": "#41493e",
+                    "on-surface": "#1b1c19",
+                    "on-secondary-container": "#fffbff",
+                    "outline": "#71796d",
+                    "on-tertiary-fixed": "#001f27",
+                    "surface-container": "#f0eee9",
+                    "secondary": "#bb0402",
+                    "surface-bright": "#fbf9f4",
+                    "secondary-fixed": "#ffdad4",
+                    "error": "#ba1a1a",
+                    "on-primary-fixed": "#002202",
+                    "on-tertiary": "#ffffff",
+                    "surface-variant": "#e4e2dd",
+                    "on-primary": "#ffffff",
+                    "inverse-surface": "#30312e",
+                    "surface-container-lowest": "#ffffff",
+                    "on-error": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "on-primary-fixed-variant": "#185218",
+                    "tertiary-fixed-dim": "#8bd1e8",
+                    "on-secondary-fixed": "#410000",
+                    "surface-container-high": "#eae8e3",
+                    "surface-dim": "#dbdad5",
+                    "inverse-on-surface": "#f2f1ec",
+                    "tertiary-fixed": "#b2ebff",
+                    "surface-container-highest": "#e4e2dd",
+                    "primary": "#003b05",
+                    "surface-tint": "#326a2d",
+                    "secondary-container": "#e02a1b",
+                    "tertiary": "#003743",
+                    "on-error-container": "#93000a",
+                    "secondary-fixed-dim": "#ffb4a8",
+                    "on-tertiary-fixed-variant": "#004e5f",
+                    "on-primary-container": "#89c67e",
+                    "background": "#fbf9f4",
+                    "surface-container-low": "#f5f3ee",
+                    "on-background": "#1b1c19",
+                    "inverse-primary": "#98d68c"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "16px",
+                    "xl": "24px",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "sidebar-width": "260px",
+                    "margin-mobile": "16px",
+                    "margin-desktop": "32px",
+                    "card-padding": "24px",
+                    "gutter": "24px"
+            },
+            "fontFamily": {
+                    "body-sm": ["Manrope"],
+                    "display": ["Manrope"],
+                    "body-lg": ["Manrope"],
+                    "headline-lg-mobile": ["Manrope"],
+                    "headline-md": ["Manrope"],
+                    "headline-lg": ["Manrope"],
+                    "label-caps": ["Manrope"]
+            },
+            "fontSize": {
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "display": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+    <style>
+        body { font-family: 'Manrope', sans-serif; background-color: #fbf9f4; color: #1b1c19; }
+        .card-shadow {
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #FFFFFF;
+            border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            padding: 16px 24px;
+            border-radius: 12px;
+            color: #1b1c19;
+            font-size: 0.92rem;
+            font-weight: 700;
+            z-index: 3000;
+            transform: translateY(100px);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .toast.error {
+            border-left: 4px solid #ba1a1a;
+            color: #ba1a1a;
+        }
+        .toast.success {
+            border-left: 4px solid #003b05;
+            color: #003b05;
+        }
+        
+        /* Chat bubble customized aesthetics */
+        .chat-message {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            animation: fadeIn 0.3s ease-out;
+        }
+        .chat-message.user {
+            flex-direction: row-reverse;
+        }
+        .chat-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-weight: bold;
+        }
+        .bot-avatar {
+            background: rgba(0, 59, 5, 0.08);
+            color: #003b05;
+            border: 1px solid rgba(0, 59, 5, 0.15);
+        }
+        .bot-avatar svg {
+            width: 20px;
+            height: 20px;
+        }
+        .user-avatar {
+            background: #003b05;
+            color: #ffffff;
+        }
+        .chat-bubble {
+            padding: 16px 20px;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            max-width: 70%;
+        }
+        .bot-bubble {
+            background: #f5f3ee;
+            border: 1px solid rgba(0, 59, 5, 0.08);
+            color: #1b1c19;
+            border-top-left-radius: 4px;
+        }
+        .bot-bubble strong {
+            color: #003b05;
+            font-weight: 700;
+        }
+        .bot-bubble ul {
+            list-style-type: disc;
+            margin-left: 20px;
+            margin-top: 8px;
+            margin-bottom: 8px;
+        }
+        .bot-bubble li {
+            margin-bottom: 4px;
+        }
+        .user-bubble {
+            background: #003b05;
+            color: white;
+            border-top-right-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 59, 5, 0.15);
+        }
+        .suggestion-chip {
+            padding: 8px 16px;
+            background: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 50px;
+            color: #41493e;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .suggestion-chip:hover {
+            border-color: #003b05;
+            color: #003b05;
+            background: rgba(0, 59, 5, 0.04);
+            transform: translateY(-1px);
+        }
+        .suggestion-chip svg {
+            width: 14px;
+            height: 14px;
+            color: #003b05;
+        }
+        
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 0;
+        }
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background: #71796d;
+            border-radius: 50%;
+            display: inline-block;
+            animation: bounce 1.3s infinite ease-in-out;
+        }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.15s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.3s; }
+        @keyframes bounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-6px); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </head>
-
-<body>
-    <div class="app-layout">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="logo">
-                <div class="logo-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M3 3v18h18M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/>
+<body class="min-h-screen">
+    <!-- Sidebar Navigation -->
+    <aside class="fixed left-0 top-0 h-screen w-[260px] border-r border-outline-variant/30 bg-surface-container-low flex flex-col py-8 px-4 gap-2 z-50">
+        <div class="mb-10 px-4">
+            <h1 class="font-headline-md text-headline-md font-extrabold text-primary">ExpenseIQ</h1>
+            <p class="text-body-sm text-on-surface-variant">Financial Clarity</p>
+        </div>
+        <nav class="flex-1 flex flex-col gap-1">
+            <a class="text-on-surface-variant hover:bg-surface-container-high hover:text-primary px-4 py-2 flex items-center gap-3 rounded-full transition-colors duration-200" href="/dashboard">
+                <span class="w-5 h-5 flex items-center justify-center">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+                        <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/>
                     </svg>
-                </div>
-                ExpenseIQ
-            </div>
-            <nav class="sidebar-nav">
-                <a href="/dashboard" class="nav-link">
-                    <span class="nav-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/>
-                        </svg>
-                    </span> 
-                    <span>Dashboard</span>
-                </a>
-                <a href="/income-page" class="nav-link">
-                    <span class="nav-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
-                        </svg>
-                    </span> 
-                    <span>Income</span>
-                </a>
-                <a href="/expenses-page" class="nav-link">
-                    <span class="nav-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
-                        </svg>
-                    </span> 
-                    <span>Expenses</span>
-                </a>
-                <a href="/advisor-page" class="nav-link active">
-                    <span class="nav-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
-                        </svg>
-                    </span> 
-                    <span>AI Advisor</span>
-                </a>
-            </nav>
-            <div class="sidebar-footer">
-                <div class="user-info">
-                    <div class="user-avatar" id="user-avatar">U</div>
-                    <span class="user-name" id="user-name">User</span>
-                </div>
-                <button class="btn-logout" onclick="handleLogout()">
-                    <span class="logout-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
-                        </svg>
-                    </span>
-                    <span>Sign Out</span>
-                </button>
-            </div>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <div class="page-header">
-                <h1>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4M8 16h8M2 14h1M21 14h1"/>
+                </span>
+                <span class="font-body-lg text-body-lg tracking-tight">Dashboard</span>
+            </a>
+            <a class="text-on-surface-variant hover:bg-surface-container-high hover:text-primary px-4 py-2 flex items-center gap-3 rounded-full transition-colors duration-200" href="/income-page">
+                <span class="w-5 h-5 flex items-center justify-center">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+                        <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
                     </svg>
-                    AI Financial Advisor
-                </h1>
-                <p>Ask me anything about your finances, purchases, or savings goals</p>
+                </span>
+                <span class="font-body-lg text-body-lg tracking-tight">Income</span>
+            </a>
+            <a class="text-on-surface-variant hover:bg-surface-container-high hover:text-primary px-4 py-2 flex items-center gap-3 rounded-full transition-colors duration-200" href="/expenses-page">
+                <span class="w-5 h-5 flex items-center justify-center">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+                        <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+                    </svg>
+                </span>
+                <span class="font-body-lg text-body-lg tracking-tight">Expenses</span>
+            </a>
+            <a class="bg-primary-container/10 text-primary font-bold rounded-full px-4 py-2 flex items-center gap-3 transition-transform duration-150 scale-100 active:scale-95" href="/advisor-page">
+                <span class="w-5 h-5 flex items-center justify-center">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+                        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+                    </svg>
+                </span>
+                <span class="font-body-lg text-body-lg tracking-tight">AI Advisor</span>
+            </a>
+        </nav>
+        
+        <!-- Profile & Sign Out Section -->
+        <div class="mt-auto pt-4 border-t border-outline-variant/30 flex flex-col gap-3">
+            <div class="flex items-center gap-3 px-2">
+                <div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-[18px]" id="user-avatar">U</div>
+                <span class="font-body-lg font-bold text-on-surface-variant truncate" id="user-name">User</span>
             </div>
+            <button onclick="handleLogout()" class="w-full py-2 bg-error-container/10 border border-error/20 text-error hover:bg-error/10 px-4 flex items-center justify-center gap-2 rounded-full font-bold text-body-sm transition-colors duration-200">
+                <span class="material-symbols-outlined text-[18px]" data-icon="logout">logout</span>
+                <span>Sign Out</span>
+            </button>
+        </div>
+    </aside>
 
-            <!-- Chat Area -->
-            <div class="chat-card">
-                <div class="chat-messages" id="chat-messages">
+    <!-- Main Content Area -->
+    <main class="ml-[260px] min-h-screen flex flex-col relative">
+        <!-- Top App Bar -->
+        <header class="sticky top-0 right-0 h-20 w-full z-40 backdrop-blur-md bg-surface/80 flex justify-between items-center px-margin-desktop border-b border-outline-variant/10">
+            <h2 class="font-headline-md text-headline-md font-bold text-primary">AI Financial Advisor</h2>
+            <div class="flex items-center gap-6">
+                <div class="flex items-center gap-4">
+                    <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high text-on-surface-variant">
+                        <span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Content: Fill remaining viewport height minus top bar -->
+        <div class="flex-1 p-margin-desktop flex flex-col">
+            <div class="bg-white rounded-xl card-shadow flex-1 flex flex-col overflow-hidden max-h-[calc(100vh-140px)]">
+                <!-- Chat messages history -->
+                <div class="flex-1 overflow-y-auto p-card-padding space-y-6" id="chat-messages">
                     <!-- Welcome message -->
                     <div class="chat-message bot">
                         <div class="chat-avatar bot-avatar">
@@ -94,9 +334,9 @@
                             </svg>
                         </div>
                         <div class="chat-bubble bot-bubble">
-                            <p>Hey there! 👋 I'm your <strong>AI Financial Advisor</strong>.</p>
-                            <p>I have access to your income, expenses, and balance data. Ask me anything like:</p>
-                            <ul>
+                            <p class="mb-2">Hey there! 👋 I'm your <strong>AI Financial Advisor</strong>.</p>
+                            <p class="mb-2">I have access to your income, expenses, and balance data. Ask me anything like:</p>
+                            <ul class="list-disc pl-5 space-y-1">
                                 <li>"Should I buy a new phone for ₹25,000?"</li>
                                 <li>"How can I save more money?"</li>
                                 <li>"What's my biggest spending category?"</li>
@@ -106,8 +346,8 @@
                     </div>
                 </div>
 
-                <!-- Quick Suggestions -->
-                <div class="chat-suggestions" id="chat-suggestions">
+                <!-- Quick suggestions chips -->
+                <div class="flex flex-wrap gap-2 px-card-padding py-4 bg-surface-container-low border-t border-outline-variant/10" id="chat-suggestions">
                     <button class="suggestion-chip" onclick="sendSuggestion(this)">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
@@ -134,23 +374,22 @@
                     </button>
                 </div>
 
-                <!-- Input Bar -->
-                <div class="chat-input-bar">
-                    <input type="text" id="chat-input" placeholder="Ask about your finances..." autocomplete="off" onkeydown="if(event.key==='Enter') sendMessage()">
-                    <button class="chat-send-btn" id="chat-send-btn" onclick="sendMessage()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <!-- Input bar -->
+                <div class="flex gap-4 p-card-padding border-t border-outline-variant/10 bg-white items-center">
+                    <input type="text" id="chat-input" placeholder="Ask about your finances..." autocomplete="off" onkeydown="if(event.key==='Enter') sendMessage()" class="flex-1 px-4 py-3 bg-surface-container-low border border-outline-variant/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 text-body-lg">
+                    <button class="w-12 h-12 bg-primary text-white rounded-xl flex items-center justify-center hover:bg-primary/90 transition-all card-shadow disabled:opacity-50" id="chat-send-btn" onclick="sendMessage()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
                             <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
                         </svg>
                     </button>
                 </div>
             </div>
-        </main>
-    </div>
+        </div>
+    </main>
 
-    <!-- Toast -->
+    <!-- Toast Notification -->
     <div class="toast" id="toast"></div>
 
     <script src="/js/advisor.js"></script>
 </body>
-
 </html>
