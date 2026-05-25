@@ -116,6 +116,21 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.02);
             border: 1px solid rgba(0,0,0,0.05);
         }
+        /* Custom scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(44, 37, 32, 0.12);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(44, 37, 32, 0.24);
+        }
         /* Custom Toast Notification styles */
         .toast {
             position: fixed;
@@ -251,8 +266,8 @@
                 </div>
 
                 <!-- Cash Flow Area Chart -->
-                <div class="col-span-12 lg:col-span-8 bg-white rounded-xl p-card-padding card-shadow flex flex-col justify-between">
-                    <div class="flex justify-between items-center mb-6">
+                <div class="col-span-12 lg:col-span-8 bg-white rounded-xl p-card-padding card-shadow flex flex-col h-full">
+                    <div class="flex justify-between items-center mb-4">
                         <h4 class="font-headline-md text-primary">Cash Flow</h4>
                         <div class="flex gap-6">
                             <div class="flex items-center gap-2">
@@ -265,18 +280,22 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Chart Canvas -->
-                    <div class="chart-container" style="position: relative; height: 180px; width: 100%;">
-                        <canvas id="expenses-line-chart"></canvas>
+                    <!-- Chart Canvas Container -->
+                    <div class="flex-1 flex items-center justify-center min-h-[220px]">
+                        <div style="position: relative; height: 220px; width: 100%;">
+                            <canvas id="expenses-line-chart"></canvas>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Income Sources breakdown (Doughnut/Pie) -->
-                <div class="col-span-12 lg:col-span-4 bg-white rounded-xl p-card-padding card-shadow flex flex-col justify-between">
-                    <h4 class="font-headline-md text-primary mb-6">Income Sources</h4>
-                    <!-- Chart Canvas -->
-                    <div class="chart-container" style="position: relative; height: 180px; width: 100%; margin-bottom: 12px;">
-                        <canvas id="income-pie-chart"></canvas>
+                <div class="col-span-12 lg:col-span-4 bg-white rounded-xl p-card-padding card-shadow flex flex-col h-full">
+                    <h4 class="font-headline-md text-primary mb-4">Income Sources</h4>
+                    <!-- Chart Canvas Container -->
+                    <div class="flex-1 flex items-center justify-center min-h-[220px]">
+                        <div style="position: relative; height: 220px; width: 100%;">
+                            <canvas id="income-pie-chart"></canvas>
+                        </div>
                     </div>
                 </div>
 

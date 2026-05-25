@@ -138,6 +138,21 @@
             border-left: 4px solid #003b05;
             color: #003b05;
         }
+        /* Custom scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(44, 37, 32, 0.12);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(44, 37, 32, 0.24);
+        }
         #income-form-error.show {
             display: block !important;
         }
