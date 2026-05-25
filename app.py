@@ -150,6 +150,20 @@ def rows_to_dicts(cursor):
     ]
 
 # ──────────────────────────────────────────────
+# Global Error Handler
+# ──────────────────────────────────────────────
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    """Global error handler to return JSON instead of HTML for backend crashes."""
+    app.logger.error(f"Unhandled Exception: {e}", exc_info=True)
+    return jsonify({
+        'error': 'Internal Server Error',
+        'message': str(e)
+    }), 500
+
+
+# ──────────────────────────────────────────────
 # Auth middleware
 # ──────────────────────────────────────────────
 
