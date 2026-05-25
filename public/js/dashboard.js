@@ -218,6 +218,33 @@ function getTransactionIcon(type, label) {
     return 'receipt_long';
 }
 
+function formatRecentActivityDate(dateStr) {
+    if (!dateStr) return '';
+    try {
+        const parts = dateStr.split('-');
+        if (parts.length !== 3) return dateStr;
+        const d = new Date(parts[0], parts[1] - 1, parts[2]);
+        const today = new Date();
+        const yesterday = new Date();
+        yesterday.setDate(today.getDate() - 1);
+        
+        if (d.toDateString() === today.toDateString()) {
+            return 'Today';
+        } else if (d.toDateString() === yesterday.toDateString()) {
+            return 'Yesterday';
+        } else {
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+    } catch {
+        return dateStr;
+    }
+}
+
+function capitalizeFirstLetter(str) {
+    if (!str) return '';
+    return str.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+}
+
 function renderRecentTransactions(data) {
     const container = document.getElementById('recent-activity-list');
 
@@ -234,22 +261,31 @@ function renderRecentTransactions(data) {
     container.innerHTML = data.map(t => {
         const icon = getTransactionIcon(t.type, t.label);
         const isIncome = t.type === 'income';
-        const badgeClass = isIncome ? 'bg-primary/10 text-primary' : 'bg-secondary/10 text-secondary';
+        const formattedLabel = capitalizeFirstLetter(t.label);
+        const formattedDate = formatRecentActivityDate(t.date);
+        const badgeBg = isIncome ? 'bg-primary/10 text-primary' : 'bg-secondary/10 text-secondary';
         const amtClass = isIncome ? 'text-primary' : 'text-secondary';
         const amtPrefix = isIncome ? '+' : '-';
         
         return `
-            <div class="flex items-center justify-between group cursor-pointer p-2 rounded-xl hover:bg-surface-container-high transition-colors">
+            <div class="flex items-center justify-between group cursor-pointer p-3 rounded-xl hover:bg-surface-container-high/40 hover:translate-x-1 transition-all duration-200">
                 <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 ${badgeClass} rounded-lg flex items-center justify-center font-bold">
-                        <span class="material-symbols-outlined">${icon}</span>
+                    <div class="w-11 h-11 ${badgeBg} rounded-full flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
+                        <span class="material-symbols-outlined text-[20px]">${icon}</span>
                     </div>
                     <div>
-                        <p class="font-body-lg font-bold text-on-surface">${t.label}</p>
-                        <p class="text-body-sm text-on-surface-variant capitalize">${t.type} • ${t.date}</p>
+                        <p class="font-body-lg font-bold text-on-surface group-hover:text-primary transition-colors">${formattedLabel}</p>
+                        <p class="text-body-sm text-on-surface-variant flex items-center gap-2 mt-0.5">
+                            <span class="inline-block w-1.5 h-1.5 rounded-full ${isIncome ? 'bg-primary' : 'bg-secondary'}"></span>
+                            <span class="capitalize">${t.type}</span>
+                            <span class="text-outline/40">•</span>
+                            <span>${formattedDate}</span>
+                        </p>
                     </div>
                 </div>
-                <p class="text-body-lg font-bold ${amtClass}">${amtPrefix}${formatCurrency(t.amount)}</p>
+                <div class="text-right">
+                    <p class="text-body-lg font-extrabold ${amtClass} tracking-tight">${amtPrefix}${formatCurrency(t.amount)}</p>
+                </div>
             </div>
         `;
     }).join('');
