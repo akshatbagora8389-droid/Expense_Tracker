@@ -54,57 +54,83 @@ if gemini_api_key:
 # Database helpers
 # ──────────────────────────────────────────────
 
+import time
+
 def get_db():
-    """Return a new MySQL connection."""
+    """Return a new MySQL connection, supporting both standard and Railway environment variables."""
+    host = os.getenv('MYSQL_HOST') or os.getenv('MYSQLHOST') or 'localhost'
+    
+    port_str = os.getenv('MYSQL_PORT') or os.getenv('MYSQLPORT') or '3306'
+    try:
+        port = int(port_str)
+    except ValueError:
+        port = 3306
+        
+    user = os.getenv('MYSQL_USER') or os.getenv('MYSQLUSER') or 'root'
+    password = os.getenv('MYSQL_PASSWORD') or os.getenv('MYSQLPASSWORD') or ''
+    database = os.getenv('MYSQL_DATABASE') or os.getenv('MYSQLDATABASE') or 'expense_tracker'
+    
     return mysql.connector.connect(
-        host=os.getenv('MYSQL_HOST', 'localhost'),
-        port=int(os.getenv('MYSQL_PORT', 3306)),
-        user=os.getenv('MYSQL_USER', 'root'),
-        password=os.getenv('MYSQL_PASSWORD', ''),
-        database=os.getenv('MYSQL_DATABASE', 'expense_tracker'),
+        host=host,
+        port=port,
+        user=user,
+        password=password,
+        database=database,
     )
 
 
 def init_db():
-    """Create tables if they don't exist (runs on startup)."""
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            username VARCHAR(50) NOT NULL UNIQUE,
-            email VARCHAR(100) NOT NULL UNIQUE,
-            password_hash VARCHAR(255) NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS income (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            user_id INT NOT NULL,
-            source VARCHAR(100) NOT NULL,
-            amount DECIMAL(12,2) NOT NULL,
-            date DATE NOT NULL,
-            description TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-        )
-    """)
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS expenses (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            user_id INT NOT NULL,
-            category VARCHAR(100) NOT NULL,
-            amount DECIMAL(12,2) NOT NULL,
-            date DATE NOT NULL,
-            description TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-        )
-    """)
-    conn.commit()
-    cur.close()
-    conn.close()
+    """Create tables if they don't exist (runs on startup). Retries on failure to handle database boot times."""
+    max_retries = 5
+    for attempt in range(max_retries):
+        try:
+            print(f"INFO: Connecting to MySQL database (attempt {attempt + 1}/{max_retries})...")
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS users (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    username VARCHAR(50) NOT NULL UNIQUE,
+                    email VARCHAR(100) NOT NULL UNIQUE,
+                    password_hash VARCHAR(255) NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS income (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    user_id INT NOT NULL,
+                    source VARCHAR(100) NOT NULL,
+                    amount DECIMAL(12,2) NOT NULL,
+                    date DATE NOT NULL,
+                    description TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS expenses (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    user_id INT NOT NULL,
+                    category VARCHAR(100) NOT NULL,
+                    amount DECIMAL(12,2) NOT NULL,
+                    date DATE NOT NULL,
+                    description TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                )
+            """)
+            conn.commit()
+            cur.close()
+            conn.close()
+            print("INFO: Database initialized successfully.")
+            return
+        except Exception as e:
+            print(f"WARNING: Database connection failed: {e}")
+            if attempt < max_retries - 1:
+                time.sleep(3)
+            else:
+                print("CRITICAL: Could not connect to database after maximum retries. Starting Flask application anyway (subsequent queries will retry dynamically).")
 
 
 # JSON serializer helper
