@@ -158,7 +158,7 @@ def handle_exception(e):
     """Global error handler to return JSON instead of HTML for backend crashes."""
     app.logger.error(f"Unhandled Exception: {e}", exc_info=True)
     return jsonify({
-        'error': 'Internal Server Error',
+        'error': str(e),
         'message': str(e)
     }), 500
 
