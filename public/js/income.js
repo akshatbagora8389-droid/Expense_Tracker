@@ -27,11 +27,14 @@ function formatCurrency(n) {
 async function loadIncome() {
     try {
         const res = await fetch('/api/income');
-        if (!res.ok) throw new Error();
+        if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.error || 'Failed to load income data');
+        }
         const data = await res.json();
         renderIncomeTable(data);
-    } catch {
-        showToast('Failed to load income data', 'error');
+    } catch (err) {
+        showToast(err.message, 'error');
     }
 }
 

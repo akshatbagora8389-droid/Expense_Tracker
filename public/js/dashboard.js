@@ -294,7 +294,10 @@ function renderRecentTransactions(data) {
 async function loadDashboard() {
     try {
         const res = await fetch('/api/dashboard/summary');
-        if (!res.ok) throw new Error('Failed to load');
+        if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.error || 'Failed to load dashboard data');
+        }
         const data = await res.json();
 
         document.getElementById('total-income').textContent = formatCurrency(data.total_income);
@@ -305,7 +308,7 @@ async function loadDashboard() {
         renderExpensesChart(data.expenses_over_time);
         renderRecentTransactions(data.recent_transactions);
     } catch (err) {
-        showToast('Failed to load dashboard data', 'error');
+        showToast(err.message, 'error');
     }
 }
 

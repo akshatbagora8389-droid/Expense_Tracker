@@ -27,11 +27,14 @@ function formatCurrency(n) {
 async function loadExpenses() {
     try {
         const res = await fetch('/api/expenses');
-        if (!res.ok) throw new Error();
+        if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.error || 'Failed to load expense data');
+        }
         const data = await res.json();
         renderExpensesTable(data);
-    } catch {
-        showToast('Failed to load expense data', 'error');
+    } catch (err) {
+        showToast(err.message, 'error');
     }
 }
 
