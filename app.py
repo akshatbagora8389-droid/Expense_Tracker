@@ -11,6 +11,7 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 import mysql.connector
 import bcrypt
+import requests
 import google.generativeai as genai
 
 load_dotenv()
@@ -575,21 +576,48 @@ def ai_chat():
     )
     
     # Check if API key is set
-    if not os.getenv('GEMINI_API_KEY'):
-        return jsonify({'reply': "⚠️ The Gemini API key is missing. Please set GEMINI_API_KEY in the .env file."})
+    grok_api_key = os.getenv('GROK_API_KEY')
+    gemini_api_key = os.getenv('GEMINI_API_KEY')
 
-    try:
-        model = genai.GenerativeModel('gemini-2.5-flash', system_instruction=system_prompt)
-        response = model.generate_content(user_message)
-        reply = response.text
-    except Exception as e:
-        app.logger.error(f"Gemini API error: {type(e).__name__}: {e}")
-        error_str = str(e).lower()
-        if '429' in error_str or 'quota' in error_str or 'rate' in error_str:
-            reply = ("⚠️ The AI advisor's API rate limit has been reached. "
-                     "Please try again later or update the API key in the .env file.")
-        else:
-            reply = "I'm sorry, I couldn't process your request right now. Please try again later."
+    if grok_api_key:
+        try:
+            model_name = os.getenv('GROK_MODEL', 'grok-2-1212')
+            headers = {
+                'Authorization': f'Bearer {grok_api_key}',
+                'Content-Type': 'application/json'
+            }
+            payload = {
+                'model': model_name,
+                'messages': [
+                    {'role': 'system', 'content': system_prompt},
+                    {'role': 'user', 'content': user_message}
+                ]
+            }
+            r = requests.post('https://api.x.ai/v1/chat/completions', headers=headers, json=payload, timeout=30)
+            r.raise_for_status()
+            reply = r.json()['choices'][0]['message']['content']
+        except Exception as e:
+            app.logger.error(f"Grok API error: {type(e).__name__}: {e}")
+            error_str = str(e).lower()
+            if '429' in error_str or 'quota' in error_str or 'rate' in error_str:
+                reply = "⚠️ The Grok AI API rate limit has been reached. Please try again later."
+            else:
+                reply = "I'm sorry, I couldn't process your request via Grok right now. Please try again later."
+    elif gemini_api_key:
+        try:
+            model = genai.GenerativeModel('gemini-2.5-flash', system_instruction=system_prompt)
+            response = model.generate_content(user_message)
+            reply = response.text
+        except Exception as e:
+            app.logger.error(f"Gemini API error: {type(e).__name__}: {e}")
+            error_str = str(e).lower()
+            if '429' in error_str or 'quota' in error_str or 'rate' in error_str:
+                reply = ("⚠️ The AI advisor's API rate limit has been reached. "
+                         "Please try again later or update the API key in the .env file.")
+            else:
+                reply = "I'm sorry, I couldn't process your request via Gemini right now. Please try again later."
+    else:
+        return jsonify({'reply': "⚠️ AI API key is missing. Please set GEMINI_API_KEY or GROK_API_KEY in the environment variables."})
 
     return jsonify({'reply': reply})
 
