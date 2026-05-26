@@ -155,16 +155,28 @@ async function sendMessage() {
         removeTypingIndicator();
 
         if (!res.ok) {
-            const err = await res.json();
-            appendMessage('bot', `<p class="error-text">⚠️ ${err.error || 'Something went wrong. Please try again.'}</p>`);
+            let errMsg = 'Something went wrong. Please try again.';
+            try {
+                const err = await res.json();
+                errMsg = err.error || errMsg;
+            } catch {
+                const text = await res.text().catch(() => '');
+                errMsg = `Server error (${res.status}): ${text.slice(0, 150) || 'Internal Server Error'}`;
+            }
+            appendMessage('bot', `<p class="error-text">⚠️ ${errMsg}</p>`);
         } else {
-            const data = await res.json();
+            let data;
+            try {
+                data = await res.json();
+            } catch {
+                throw new Error('Invalid response format from server.');
+            }
             const formattedReply = formatBotReply(data.reply);
             appendMessage('bot', formattedReply);
         }
     } catch (err) {
         removeTypingIndicator();
-        appendMessage('bot', '<p class="error-text">⚠️ Network error. Please check your connection.</p>');
+        appendMessage('bot', `<p class="error-text">⚠️ Network error: ${err.message || 'Please check your connection.'}</p>`);
     }
 
     isWaiting = false;
