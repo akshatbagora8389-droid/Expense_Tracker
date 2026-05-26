@@ -579,7 +579,7 @@ def ai_chat():
         return jsonify({'reply': "⚠️ The Gemini API key is missing. Please set GEMINI_API_KEY in the .env file."})
 
     try:
-        model = genai.GenerativeModel('gemini-2.5-flash', system_instruction=system_prompt)
+        model = genai.GenerativeModel('gemini-1.5-flash', system_instruction=system_prompt)
         response = model.generate_content(user_message)
         reply = response.text
     except Exception as e:
