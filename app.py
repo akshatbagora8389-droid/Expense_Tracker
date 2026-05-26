@@ -94,13 +94,20 @@ def get_db():
     password = os.getenv('MYSQL_PASSWORD') or os.getenv('MYSQLPASSWORD') or ''
     database = os.getenv('MYSQL_DATABASE') or os.getenv('MYSQLDATABASE') or 'expense_tracker'
     
-    return mysql.connector.connect(
-        host=host,
-        port=port,
-        user=user,
-        password=password,
-        database=database,
-    )
+    ssl_ca = os.getenv('MYSQL_SSL_CA')
+    
+    connect_kwargs = {
+        'host': host,
+        'port': port,
+        'user': user,
+        'password': password,
+        'database': database,
+    }
+    
+    if ssl_ca:
+        connect_kwargs['ssl_ca'] = ssl_ca
+        
+    return mysql.connector.connect(**connect_kwargs)
 
 
 def init_db():
