@@ -1,6 +1,7 @@
 import os
 import logging
 import functools
+import re
 from datetime import datetime, date
 from decimal import Decimal
 
@@ -10,6 +11,7 @@ from flask import (
 from flask_cors import CORS
 from dotenv import load_dotenv
 import mysql.connector
+from mysql.connector.pooling import MySQLConnectionPool
 import bcrypt
 import requests
 import google.generativeai as genai
@@ -21,6 +23,7 @@ load_dotenv()
 # ──────────────────────────────────────────────
 
 app = Flask(__name__, static_folder='public', static_url_path='')
+app.debug = os.getenv('FLASK_DEBUG', 'false').lower() in ('true', '1', 'yes')
 
 # Secret key — MUST be set via env in production
 secret_key = os.getenv('FLASK_SECRET_KEY')
@@ -50,15 +53,40 @@ if not secret_key or secret_key == 'change-me':
         
     # Final fallback if file operations fail
     if not secret_key:
-        secret_key = 'expenseiq-production-fallback-secure-key-2026'
+        import secrets
+        secret_key = secrets.token_hex(32)
         
 app.secret_key = secret_key
 
 from datetime import timedelta
 app.permanent_session_lifetime = timedelta(days=30)
 
-# CORS — allow all origins in dev, restrict in production if needed
-CORS(app, supports_credentials=True)
+# Session cookie security settings for production
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_SECURE'] = not app.debug
+
+# CORS — only enable in local debug mode to prevent cross-origin credential sharing in production
+if app.debug:
+    CORS(app, supports_credentials=True)
+
+# Enforce HTTPS redirects in production (handles SSL termination on platforms like Railway/Render)
+@app.before_request
+def enforce_https():
+    if not app.debug:
+        if request.headers.get('X-Forwarded-Proto', 'http') == 'http' and not request.is_secure:
+            url = request.url.replace('http://', 'https://', 1)
+            return redirect(url, code=301)
+
+# Secure headers to mitigate Clickjacking and MIME-sniffing vulnerabilities
+@app.after_request
+def add_security_headers(response):
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    if not app.debug:
+        # Strictly enforce secure connections on browsers
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload'
+    return response
 
 # Logging
 logging.basicConfig(
@@ -80,8 +108,14 @@ if gemini_api_key:
 
 import time
 
-def get_db():
-    """Return a new MySQL connection, supporting both standard and Railway environment variables."""
+db_pool = None
+
+def init_pool():
+    """Initialize the MySQL Connection Pool."""
+    global db_pool
+    if db_pool is not None:
+        return
+        
     host = os.getenv('MYSQL_HOST') or os.getenv('MYSQLHOST') or 'localhost'
     
     port_str = os.getenv('MYSQL_PORT') or os.getenv('MYSQLPORT') or '3306'
@@ -96,7 +130,10 @@ def get_db():
     
     ssl_ca = os.getenv('MYSQL_SSL_CA')
     
-    connect_kwargs = {
+    pool_kwargs = {
+        'pool_name': 'expenseiq_pool',
+        'pool_size': 10,
+        'pool_reset_session': True,
         'host': host,
         'port': port,
         'user': user,
@@ -105,17 +142,28 @@ def get_db():
     }
     
     if ssl_ca:
-        connect_kwargs['ssl_ca'] = ssl_ca
+        pool_kwargs['ssl_ca'] = ssl_ca
         
-    return mysql.connector.connect(**connect_kwargs)
+    db_pool = MySQLConnectionPool(**pool_kwargs)
+
+
+def get_db():
+    """Get a connection from the MySQL Connection Pool, initializing it if necessary."""
+    global db_pool
+    if db_pool is None:
+        init_pool()
+    return db_pool.get_connection()
 
 
 def init_db():
     """Create tables if they don't exist (runs on startup). Retries on failure to handle database boot times."""
     max_retries = 5
     for attempt in range(max_retries):
+        conn = None
+        cur = None
         try:
             print(f"INFO: Connecting to MySQL database (attempt {attempt + 1}/{max_retries})...")
+            init_pool()
             conn = get_db()
             cur = conn.cursor()
             cur.execute("""
@@ -152,8 +200,6 @@ def init_db():
                 )
             """)
             conn.commit()
-            cur.close()
-            conn.close()
             print("INFO: Database initialized successfully.")
             return
         except Exception as e:
@@ -162,6 +208,17 @@ def init_db():
                 time.sleep(3)
             else:
                 print("CRITICAL: Could not connect to database after maximum retries. Starting Flask application anyway (subsequent queries will retry dynamically).")
+        finally:
+            if cur:
+                try:
+                    cur.close()
+                except Exception:
+                    pass
+            if conn:
+                try:
+                    conn.close()
+                except Exception:
+                    pass
 
 
 # JSON serializer helper
@@ -236,7 +293,9 @@ def advisor_page():
 
 @app.route('/api/diagnose')
 def diagnose_env():
-    """Diagnostic route to inspect database environment variables in production (passwords masked)."""
+    """Diagnostic route to inspect database environment variables (development/debug only)."""
+    if not app.debug:
+        return jsonify({'error': 'Forbidden', 'message': 'Diagnostics disabled in production.'}), 403
     return jsonify({
         'MYSQL_HOST_env': os.getenv('MYSQL_HOST'),
         'MYSQLHOST_env': os.getenv('MYSQLHOST'),
@@ -260,6 +319,9 @@ def diagnose_env():
 # Auth API
 # ──────────────────────────────────────────────
 
+EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+
+
 @app.route('/api/auth/register', methods=['POST'])
 def register():
     data = request.get_json()
@@ -270,8 +332,16 @@ def register():
     if not username or not email or not password:
         return jsonify({'error': 'All fields are required'}), 400
 
+    if not EMAIL_REGEX.match(email):
+        return jsonify({'error': 'Invalid email address format'}), 400
+
+    if len(password) < 6:
+        return jsonify({'error': 'Password must be at least 6 characters long'}), 400
+
     pw_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
+    conn = None
+    cur = None
     try:
         conn = get_db()
         cur = conn.cursor()
@@ -281,10 +351,13 @@ def register():
         )
         conn.commit()
         user_id = cur.lastrowid
-        cur.close()
-        conn.close()
     except mysql.connector.IntegrityError:
         return jsonify({'error': 'Username or email already exists'}), 409
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
 
     session['user_id'] = user_id
     session['username'] = username
@@ -297,12 +370,22 @@ def login():
     email = data.get('email', '').strip()
     password = data.get('password', '')
 
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute('SELECT id, username, password_hash FROM users WHERE email = %s', (email,))
-    row = cur.fetchone()
-    cur.close()
-    conn.close()
+    if not email or not password:
+        return jsonify({'error': 'Email and password are required'}), 400
+
+    conn = None
+    cur = None
+    row = None
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute('SELECT id, username, password_hash FROM users WHERE email = %s', (email,))
+        row = cur.fetchone()
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
 
     if not row:
         return jsonify({'error': 'Invalid credentials'}), 401
@@ -339,16 +422,22 @@ def me():
 @app.route('/api/income', methods=['GET'])
 @login_required
 def get_income():
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute(
-        'SELECT id, source, amount, date, description, created_at FROM income WHERE user_id = %s ORDER BY date DESC',
-        (session['user_id'],),
-    )
-    data = rows_to_dicts(cur)
-    cur.close()
-    conn.close()
-    return jsonify(data)
+    conn = None
+    cur = None
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute(
+            'SELECT id, source, amount, date, description, created_at FROM income WHERE user_id = %s ORDER BY date DESC',
+            (session['user_id'],),
+        )
+        data = rows_to_dicts(cur)
+        return jsonify(data)
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
 
 
 @app.route('/api/income', methods=['POST'])
@@ -360,35 +449,54 @@ def add_income():
     inc_date = data.get('date')
     description = data.get('description', '').strip()
 
-    if not source or not amount or not inc_date:
+    if not source or amount is None or not inc_date:
         return jsonify({'error': 'Source, amount, and date are required'}), 400
 
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute(
-        'INSERT INTO income (user_id, source, amount, date, description) VALUES (%s, %s, %s, %s, %s)',
-        (session['user_id'], source, amount, inc_date, description),
-    )
-    conn.commit()
-    new_id = cur.lastrowid
-    cur.close()
-    conn.close()
-    return jsonify({'message': 'Income added', 'id': new_id}), 201
+    try:
+        amount_val = float(amount)
+        if amount_val <= 0:
+            return jsonify({'error': 'Amount must be a positive number'}), 400
+    except (TypeError, ValueError):
+        return jsonify({'error': 'Amount must be a valid number'}), 400
+
+    conn = None
+    cur = None
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute(
+            'INSERT INTO income (user_id, source, amount, date, description) VALUES (%s, %s, %s, %s, %s)',
+            (session['user_id'], source, amount_val, inc_date, description),
+        )
+        conn.commit()
+        new_id = cur.lastrowid
+        return jsonify({'message': 'Income added', 'id': new_id}), 201
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
 
 
 @app.route('/api/income/<int:income_id>', methods=['DELETE'])
 @login_required
 def delete_income(income_id):
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute('DELETE FROM income WHERE id = %s AND user_id = %s', (income_id, session['user_id']))
-    conn.commit()
-    affected = cur.rowcount
-    cur.close()
-    conn.close()
-    if affected == 0:
-        return jsonify({'error': 'Not found'}), 404
-    return jsonify({'message': 'Deleted'})
+    conn = None
+    cur = None
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute('DELETE FROM income WHERE id = %s AND user_id = %s', (income_id, session['user_id']))
+        conn.commit()
+        affected = cur.rowcount
+        if affected == 0:
+            return jsonify({'error': 'Not found'}), 404
+        return jsonify({'message': 'Deleted'})
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
 
 # ──────────────────────────────────────────────
 # Expenses API
@@ -397,16 +505,22 @@ def delete_income(income_id):
 @app.route('/api/expenses', methods=['GET'])
 @login_required
 def get_expenses():
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute(
-        'SELECT id, category, amount, date, description, created_at FROM expenses WHERE user_id = %s ORDER BY date DESC',
-        (session['user_id'],),
-    )
-    data = rows_to_dicts(cur)
-    cur.close()
-    conn.close()
-    return jsonify(data)
+    conn = None
+    cur = None
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute(
+            'SELECT id, category, amount, date, description, created_at FROM expenses WHERE user_id = %s ORDER BY date DESC',
+            (session['user_id'],),
+        )
+        data = rows_to_dicts(cur)
+        return jsonify(data)
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
 
 
 @app.route('/api/expenses', methods=['POST'])
@@ -418,35 +532,54 @@ def add_expense():
     exp_date = data.get('date')
     description = data.get('description', '').strip()
 
-    if not category or not amount or not exp_date:
+    if not category or amount is None or not exp_date:
         return jsonify({'error': 'Category, amount, and date are required'}), 400
 
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute(
-        'INSERT INTO expenses (user_id, category, amount, date, description) VALUES (%s, %s, %s, %s, %s)',
-        (session['user_id'], category, amount, exp_date, description),
-    )
-    conn.commit()
-    new_id = cur.lastrowid
-    cur.close()
-    conn.close()
-    return jsonify({'message': 'Expense added', 'id': new_id}), 201
+    try:
+        amount_val = float(amount)
+        if amount_val <= 0:
+            return jsonify({'error': 'Amount must be a positive number'}), 400
+    except (TypeError, ValueError):
+        return jsonify({'error': 'Amount must be a valid number'}), 400
+
+    conn = None
+    cur = None
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute(
+            'INSERT INTO expenses (user_id, category, amount, date, description) VALUES (%s, %s, %s, %s, %s)',
+            (session['user_id'], category, amount_val, exp_date, description),
+        )
+        conn.commit()
+        new_id = cur.lastrowid
+        return jsonify({'message': 'Expense added', 'id': new_id}), 201
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
 
 
 @app.route('/api/expenses/<int:expense_id>', methods=['DELETE'])
 @login_required
 def delete_expense(expense_id):
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute('DELETE FROM expenses WHERE id = %s AND user_id = %s', (expense_id, session['user_id']))
-    conn.commit()
-    affected = cur.rowcount
-    cur.close()
-    conn.close()
-    if affected == 0:
-        return jsonify({'error': 'Not found'}), 404
-    return jsonify({'message': 'Deleted'})
+    conn = None
+    cur = None
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute('DELETE FROM expenses WHERE id = %s AND user_id = %s', (expense_id, session['user_id']))
+        conn.commit()
+        affected = cur.rowcount
+        if affected == 0:
+            return jsonify({'error': 'Not found'}), 404
+        return jsonify({'message': 'Deleted'})
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
 
 # ──────────────────────────────────────────────
 # Dashboard API
@@ -456,58 +589,94 @@ def delete_expense(expense_id):
 @login_required
 def dashboard_summary():
     uid = session['user_id']
-    conn = get_db()
-    cur = conn.cursor()
+    conn = None
+    cur = None
+    try:
+        conn = get_db()
+        cur = conn.cursor()
 
-    # Total income
-    cur.execute('SELECT COALESCE(SUM(amount), 0) FROM income WHERE user_id = %s', (uid,))
-    total_income = float(cur.fetchone()[0])
+        # Total income
+        cur.execute('SELECT COALESCE(SUM(amount), 0) FROM income WHERE user_id = %s', (uid,))
+        total_income = float(cur.fetchone()[0])
 
-    # Total expenses
-    cur.execute('SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE user_id = %s', (uid,))
-    total_expenses = float(cur.fetchone()[0])
+        # Total expenses
+        cur.execute('SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE user_id = %s', (uid,))
+        total_expenses = float(cur.fetchone()[0])
 
-    # Income by source (for pie chart)
-    cur.execute(
-        'SELECT source, SUM(amount) as total FROM income WHERE user_id = %s GROUP BY source ORDER BY total DESC',
-        (uid,),
-    )
-    income_by_source = [{'source': r[0], 'total': float(r[1])} for r in cur.fetchall()]
+        # Income by source (for pie chart)
+        cur.execute(
+            'SELECT source, SUM(amount) as total FROM income WHERE user_id = %s GROUP BY source ORDER BY total DESC',
+            (uid,),
+        )
+        income_by_source = [{'source': r[0], 'total': float(r[1])} for r in cur.fetchall()]
 
-    # Expenses over time (for line chart) — grouped by month
-    cur.execute(
-        """SELECT CONCAT(YEAR(date), '-', LPAD(MONTH(date), 2, '0')) as month, SUM(amount) as total
-           FROM expenses WHERE user_id = %s
-           GROUP BY month ORDER BY month ASC""",
-        (uid,),
-    )
-    expenses_over_time = [{'month': r[0], 'total': float(r[1])} for r in cur.fetchall()]
+        # Expenses over time (for line chart) — grouped by month
+        cur.execute(
+            """SELECT CONCAT(YEAR(date), '-', LPAD(MONTH(date), 2, '0')) as month, SUM(amount) as total
+               FROM expenses WHERE user_id = %s
+               GROUP BY month ORDER BY month ASC""",
+            (uid,),
+        )
+        expenses_over_time = [{'month': r[0], 'total': float(r[1])} for r in cur.fetchall()]
 
-    # Recent transactions (last 5 of each)
-    cur.execute(
-        "SELECT 'income' as type, source as label, amount, date FROM income WHERE user_id = %s "
-        "UNION ALL "
-        "SELECT 'expense' as type, category as label, amount, date FROM expenses WHERE user_id = %s "
-        "ORDER BY date DESC LIMIT 10",
-        (uid, uid),
-    )
-    recent = rows_to_dicts(cur)
+        # Recent transactions (last 5 of each)
+        cur.execute(
+            "SELECT 'income' as type, source as label, amount, date FROM income WHERE user_id = %s "
+            "UNION ALL "
+            "SELECT 'expense' as type, category as label, amount, date FROM expenses WHERE user_id = %s "
+            "ORDER BY date DESC LIMIT 10",
+            (uid, uid),
+        )
+        recent = rows_to_dicts(cur)
 
-    cur.close()
-    conn.close()
-
-    return jsonify({
-        'total_income': total_income,
-        'total_expenses': total_expenses,
-        'balance': total_income - total_expenses,
-        'income_by_source': income_by_source,
-        'expenses_over_time': expenses_over_time,
-        'recent_transactions': recent,
-    })
+        return jsonify({
+            'total_income': total_income,
+            'total_expenses': total_expenses,
+            'balance': total_income - total_expenses,
+            'income_by_source': income_by_source,
+            'expenses_over_time': expenses_over_time,
+            'recent_transactions': recent,
+        })
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
 
 # ──────────────────────────────────────────────
 # AI Chat API
 # ──────────────────────────────────────────────
+
+import threading
+import time
+
+class AIProviderHealthTracker:
+    def __init__(self, cooldown_seconds=300):
+        self.cooldown_seconds = cooldown_seconds
+        self.last_failure = {}
+        self.consecutive_failures = {}
+        self.lock = threading.Lock()
+
+    def is_healthy(self, provider):
+        with self.lock:
+            last_fail = self.last_failure.get(provider, 0)
+            now = time.time()
+            if now - last_fail < self.cooldown_seconds:
+                return False
+            return True
+
+    def report_success(self, provider):
+        with self.lock:
+            self.last_failure[provider] = 0
+            self.consecutive_failures[provider] = 0
+
+    def report_failure(self, provider):
+        with self.lock:
+            self.last_failure[provider] = time.time()
+            self.consecutive_failures[provider] = self.consecutive_failures.get(provider, 0) + 1
+
+health_tracker = AIProviderHealthTracker(cooldown_seconds=300)
+
 
 @app.route('/api/chat', methods=['POST'])
 @login_required
@@ -519,44 +688,49 @@ def ai_chat():
         return jsonify({'error': 'Message is required'}), 400
 
     uid = session['user_id']
-    conn = get_db()
-    cur = conn.cursor()
+    conn = None
+    cur = None
+    try:
+        conn = get_db()
+        cur = conn.cursor()
 
-    # Gather financial context
-    cur.execute('SELECT COALESCE(SUM(amount), 0) FROM income WHERE user_id = %s', (uid,))
-    total_income = float(cur.fetchone()[0])
+        # Gather financial context
+        cur.execute('SELECT COALESCE(SUM(amount), 0) FROM income WHERE user_id = %s', (uid,))
+        total_income = float(cur.fetchone()[0])
 
-    cur.execute('SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE user_id = %s', (uid,))
-    total_expenses = float(cur.fetchone()[0])
+        cur.execute('SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE user_id = %s', (uid,))
+        total_expenses = float(cur.fetchone()[0])
 
-    balance = total_income - total_expenses
+        balance = total_income - total_expenses
 
-    # Income breakdown
-    cur.execute(
-        'SELECT source, SUM(amount) as total FROM income WHERE user_id = %s GROUP BY source ORDER BY total DESC',
-        (uid,),
-    )
-    income_sources = [{'source': r[0], 'total': float(r[1])} for r in cur.fetchall()]
+        # Income breakdown
+        cur.execute(
+            'SELECT source, SUM(amount) as total FROM income WHERE user_id = %s GROUP BY source ORDER BY total DESC',
+            (uid,),
+        )
+        income_sources = [{'source': r[0], 'total': float(r[1])} for r in cur.fetchall()]
 
-    # Expense breakdown by category
-    cur.execute(
-        'SELECT category, SUM(amount) as total FROM expenses WHERE user_id = %s GROUP BY category ORDER BY total DESC',
-        (uid,),
-    )
-    expense_categories = [{'category': r[0], 'total': float(r[1])} for r in cur.fetchall()]
+        # Expense breakdown by category
+        cur.execute(
+            'SELECT category, SUM(amount) as total FROM expenses WHERE user_id = %s GROUP BY category ORDER BY total DESC',
+            (uid,),
+        )
+        expense_categories = [{'category': r[0], 'total': float(r[1])} for r in cur.fetchall()]
 
-    # Recent transactions
-    cur.execute(
-        "SELECT 'income' as type, source as label, amount, date FROM income WHERE user_id = %s "
-        "UNION ALL "
-        "SELECT 'expense' as type, category as label, amount, date FROM expenses WHERE user_id = %s "
-        "ORDER BY date DESC LIMIT 15",
-        (uid, uid),
-    )
-    recent = rows_to_dicts(cur)
-
-    cur.close()
-    conn.close()
+        # Recent transactions
+        cur.execute(
+            "SELECT 'income' as type, source as label, amount, date FROM income WHERE user_id = %s "
+            "UNION ALL "
+            "SELECT 'expense' as type, category as label, amount, date FROM expenses WHERE user_id = %s "
+            "ORDER BY date DESC LIMIT 15",
+            (uid, uid),
+        )
+        recent = rows_to_dicts(cur)
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
 
     # Build context for Gemini
     financial_context = (
@@ -586,9 +760,14 @@ def ai_chat():
     grok_api_key = os.getenv('GROK_API_KEY')
     gemini_api_key = os.getenv('GEMINI_API_KEY')
 
-    if grok_api_key:
+    reply = None
+    errors = []
+
+    def try_grok():
+        if not grok_api_key:
+            return None
         try:
-            model_name = os.getenv('GROK_MODEL', 'grok-2-1212')
+            model_name = os.getenv('GROK_MODEL', 'grok-2')
             headers = {
                 'Authorization': f'Bearer {grok_api_key}',
                 'Content-Type': 'application/json'
@@ -600,31 +779,65 @@ def ai_chat():
                     {'role': 'user', 'content': user_message}
                 ]
             }
-            r = requests.post('https://api.x.ai/v1/chat/completions', headers=headers, json=payload, timeout=30)
+            r = requests.post('https://api.x.ai/v1/chat/completions', headers=headers, json=payload, timeout=10)
             r.raise_for_status()
-            reply = r.json()['choices'][0]['message']['content']
+            res_content = r.json()['choices'][0]['message']['content']
+            health_tracker.report_success('grok')
+            return res_content
         except Exception as e:
-            app.logger.error(f"Grok API error: {type(e).__name__}: {e}")
-            error_str = str(e).lower()
-            if '429' in error_str or 'quota' in error_str or 'rate' in error_str:
-                reply = "⚠️ The Grok AI API rate limit has been reached. Please try again later."
-            else:
-                reply = "I'm sorry, I couldn't process your request via Grok right now. Please try again later."
-    elif gemini_api_key:
+            app.logger.warning(f"Grok API error: {e}")
+            errors.append(f"Grok error: {e}")
+            health_tracker.report_failure('grok')
+            return None
+
+    def try_gemini():
+        if not gemini_api_key:
+            return None
         try:
             model = genai.GenerativeModel('gemini-2.5-flash', system_instruction=system_prompt)
             response = model.generate_content(user_message)
-            reply = response.text
+            res_content = response.text
+            health_tracker.report_success('gemini')
+            return res_content
         except Exception as e:
-            app.logger.error(f"Gemini API error: {type(e).__name__}: {e}")
-            error_str = str(e).lower()
-            if '429' in error_str or 'quota' in error_str or 'rate' in error_str:
-                reply = ("⚠️ The AI advisor's API rate limit has been reached. "
-                         "Please try again later or update the API key in the .env file.")
-            else:
-                reply = "I'm sorry, I couldn't process your request via Gemini right now. Please try again later."
+            app.logger.warning(f"Gemini API error: {e}")
+            errors.append(f"Gemini error: {e}")
+            health_tracker.report_failure('gemini')
+            return None
+
+    # Try them in order of availability and health
+    grok_available = bool(grok_api_key) and health_tracker.is_healthy('grok')
+    gemini_available = bool(gemini_api_key) and health_tracker.is_healthy('gemini')
+
+    if grok_available:
+        reply = try_grok()
+        if not reply and gemini_available:
+            app.logger.info("Falling back to Gemini API...")
+            reply = try_gemini()
+        elif not reply and bool(gemini_api_key) and not gemini_available:
+            app.logger.info("Grok failed, trying Gemini as last resort despite cooldown...")
+            reply = try_gemini()
+    elif gemini_available:
+        reply = try_gemini()
+        if not reply and grok_available:
+            app.logger.info("Falling back to Grok API...")
+            reply = try_grok()
+        elif not reply and bool(grok_api_key) and not grok_available:
+            app.logger.info("Gemini failed, trying Grok as last resort despite cooldown...")
+            reply = try_grok()
     else:
-        return jsonify({'reply': "⚠️ AI API key is missing. Please set GEMINI_API_KEY or GROK_API_KEY in the environment variables."})
+        # Both are on cooldown or neither is marked healthy. Try both as last resort.
+        app.logger.info("No healthy providers available, trying all configured providers as last resort...")
+        if grok_api_key:
+            reply = try_grok()
+        if not reply and gemini_api_key:
+            reply = try_gemini()
+
+    if not reply:
+        if not grok_api_key and not gemini_api_key:
+            return jsonify({'reply': "⚠️ AI API key is missing. Please set GEMINI_API_KEY or GROK_API_KEY in the environment variables."})
+        else:
+            return jsonify({'reply': f"⚠️ I'm sorry, I couldn't process your request via any configured AI model right now. Details:\n- " + "\n- ".join(errors)})
 
     return jsonify({'reply': reply})
 
@@ -634,7 +847,6 @@ def ai_chat():
 
 import uuid
 import urllib.parse
-import requests
 
 def is_oauth_dev_mode():
     return os.getenv('DEV_MODE_OAUTH', 'false').lower() in ('true', '1', 'yes')

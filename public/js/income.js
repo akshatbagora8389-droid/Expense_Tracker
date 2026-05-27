@@ -1,28 +1,6 @@
 // ── Income page logic ──────────────────────────
 
-async function checkAuth() {
-    try {
-        const res = await fetch('/api/auth/me');
-        if (!res.ok) { window.location.href = '/'; return null; }
-        return await res.json();
-    } catch { window.location.href = '/'; return null; }
-}
-
-async function handleLogout() {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    window.location.href = '/';
-}
-
-function showToast(msg, type = 'success') {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = 'toast show ' + type;
-    setTimeout(() => t.classList.remove('show'), 3000);
-}
-
-function formatCurrency(n) {
-    return '₹' + Number(n).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-}
+// Helpers loaded from utils.js
 
 async function loadIncome() {
     try {
@@ -127,18 +105,6 @@ async function deleteIncome(id) {
     }
 }
 
-function formatDisplayName(name) {
-    if (!name) return 'USER';
-    let clean = name.split('@')[0];
-    if (clean.toLowerCase().includes('akshat') && clean.toLowerCase().includes('bagora')) {
-        return 'Akshat Bagora';
-    }
-    if (clean.toLowerCase().includes('harshita') && clean.toLowerCase().includes('agrawal')) {
-        return 'Harshita Agrawal';
-    }
-    let split = clean.replace(/([a-z])([A-Z])/g, '$1 $2');
-    return split;
-}
 
 // Init
 (async function () {

@@ -379,9 +379,20 @@
         document.querySelectorAll('a[href^="#"]').forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
-                const target = document.querySelector(link.getAttribute('href'));
+                const href = link.getAttribute('href');
+                if (href === '#') return;
+                const target = document.querySelector(href);
                 if (target) {
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    const nav = document.getElementById('landing-nav');
+                    const navHeight = nav ? nav.offsetHeight : 80;
+                    const targetPosition = target.getBoundingClientRect().top + window.scrollY;
+                    const offsetPosition = targetPosition - navHeight;
+
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    });
+
                     // Close mobile menu if open
                     document.getElementById('mobile-menu-btn').classList.remove('active');
                     document.getElementById('nav-links').classList.remove('active');

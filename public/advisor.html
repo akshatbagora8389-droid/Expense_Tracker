@@ -265,14 +265,48 @@
             from { opacity: 0; transform: translateY(6px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        /* Mobile-specific performance & layout enhancements */
+        @media (max-width: 767px) {
+            header {
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+                background: #fbf9f4 !important;
+            }
+            button, a, select, input {
+                -webkit-tap-highlight-color: transparent;
+                touch-action: manipulation;
+            }
+            .chat-card {
+                height: calc(100vh - 160px) !important;
+            }
+        }
+
+        /* Desktop collapse sidebar styles */
+        @media (min-width: 768px) {
+            body:not(.sidebar-collapsed) #sidebar-toggle-btn {
+                display: none;
+            }
+            body.sidebar-collapsed #sidebar {
+                transform: translateX(-100%);
+            }
+            body.sidebar-collapsed main {
+                margin-left: 0 !important;
+            }
+        }
     </style>
 </head>
 <body class="min-h-screen">
     <!-- Sidebar Navigation -->
-    <aside class="fixed left-0 top-0 h-screen w-[260px] border-r border-outline-variant/30 bg-surface-container-low flex flex-col py-8 px-4 gap-2 z-50">
-        <div class="mb-10 px-4">
-            <h1 class="font-headline-md text-headline-md font-extrabold text-primary">ExpenseIQ</h1>
-            <p class="text-body-sm text-on-surface-variant">Financial Clarity</p>
+    <aside id="sidebar" class="fixed left-0 top-0 h-screen w-[260px] border-r border-outline-variant/30 bg-surface-container-low flex flex-col py-8 px-4 gap-2 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+        <div class="mb-10 px-4 flex items-center justify-between">
+            <div>
+                <h1 class="font-headline-md text-headline-md font-extrabold text-primary">ExpenseIQ</h1>
+                <p class="text-body-sm text-on-surface-variant">Financial Clarity</p>
+            </div>
+            <button id="sidebar-collapse-btn" class="p-1 text-on-surface-variant hover:text-primary rounded-full focus:outline-none transition-colors" aria-label="Collapse sidebar">
+                <span class="material-symbols-outlined text-[28px] !leading-none block">dock_to_right</span>
+            </button>
         </div>
         <nav class="flex-1 flex flex-col gap-1">
             <a class="text-on-surface-variant hover:bg-surface-container-high hover:text-primary px-4 py-2 flex items-center gap-3 rounded-full transition-colors duration-200" href="/dashboard">
@@ -322,15 +356,23 @@
         </div>
     </aside>
 
+    <!-- Sidebar Overlay for Mobile -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/40 z-40 hidden md:hidden transition-opacity duration-300"></div>
+
     <!-- Main Content Area -->
-    <main class="ml-[260px] min-h-screen flex flex-col relative">
+    <main class="ml-0 md:ml-[260px] min-h-screen flex flex-col relative transition-all duration-300">
         <!-- Top App Bar -->
-        <header class="sticky top-0 right-0 h-20 w-full z-40 backdrop-blur-md bg-surface/80 flex justify-between items-center px-margin-desktop border-b border-outline-variant/10">
-            <h2 class="font-headline-md text-headline-md font-bold text-primary">AI Financial Advisor</h2>
+        <header class="sticky top-0 right-0 h-20 w-full z-40 backdrop-blur-md bg-surface/80 flex justify-between items-center px-4 md:px-margin-desktop border-b border-outline-variant/10">
+            <div class="flex items-center gap-3">
+                <button id="sidebar-toggle-btn" class="p-1 mr-1 text-on-surface-variant hover:text-primary rounded-full focus:outline-none transition-colors" aria-label="Toggle navigation">
+                    <span class="material-symbols-outlined text-[28px] !leading-none block">dock_to_right</span>
+                </button>
+                <h2 class="font-headline-md text-headline-md font-bold text-primary">AI Financial Advisor</h2>
+            </div>
         </header>
 
         <!-- Page Content: Fill remaining viewport height minus top bar -->
-        <div class="flex-1 p-margin-desktop flex flex-col">
+        <div class="flex-1 p-4 md:p-margin-desktop flex flex-col">
             <div class="bg-white rounded-xl card-shadow flex-1 flex flex-col overflow-hidden max-h-[calc(100vh-140px)]">
                 <!-- Chat messages history -->
                 <div class="flex-1 overflow-y-auto p-card-padding space-y-6" id="chat-messages">
@@ -398,6 +440,7 @@
     <!-- Toast Notification -->
     <div class="toast" id="toast"></div>
 
+    <script src="/js/utils.js"></script>
     <script src="/js/advisor.js"></script>
 </body>
 </html>

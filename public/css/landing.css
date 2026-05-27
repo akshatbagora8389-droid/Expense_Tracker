@@ -10,7 +10,8 @@
     right: 0;
     z-index: 1000;
     padding: 24px 0;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-bottom: 1px solid transparent;
+    transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .landing-nav.scrolled {
@@ -376,6 +377,7 @@
     padding: 110px 0;
     position: relative;
     z-index: 1;
+    scroll-margin-top: 80px;
 }
 
 .section-alt {
